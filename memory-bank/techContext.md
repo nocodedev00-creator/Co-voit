@@ -12,7 +12,7 @@
 ## Contraintes & Choix Architecturaux
 - **Performance** : Appels serveur asynchrones via Promises (`callServer`), rechargement ciblé des vues.
 - **Compatibilité** : Web App Google Apps Script, exécution `USER_DEPLOYING`, accès `ANYONE_ANONYMOUS`.
-- **Sécurité** : Accès admin protégé par `adminToken` (passé en paramètre des contrôleurs). Scopes OAuth limités à `spreadsheets` et `script.container.ui`.
+- **Sécurité** : Accès admin protégé par `adminToken` (passé en paramètre des contrôleurs). Scopes OAuth : `spreadsheets`, `script.container.ui`, `script.external_request`, `script.scriptapp`.
 - **Persistance** : Google Sheets comme base de données (pas de SGBD externe).
 
 ## Configuration Apps Script (`appscript.json`)
@@ -27,18 +27,17 @@
 > ⚠️ Le projet n'utilise PAS la structure `src/core|services|ui|utils` par défaut.
 > Il suit une organisation **plate typique Google Apps Script** (fichiers à la racine).
 
-- `Code.gs` : Point d'entrée serveur (`doGet`, routage, injection `SERVER_ROUTING`). *(actuellement vide)*
-- `Controllers.gs` : Contrôleurs exposés au client (`ctrl*`). *(actuellement vide)*
-- `Database.gs` : Couche d'accès aux données (Google Sheets). *(actuellement vide)*
-- `Utils.gs` : Fonctions utilitaires serveur. *(actuellement vide)*
-- `Index.html` : Shell HTML principal (SPA). *(actuellement vide)*
-- `AdminView.html` : Vue admin. *(actuellement vide)*
-- `MatchView.html` : Vue joueur/match. *(actuellement vide)*
-- `Styles.html` : Styles CSS. *(actuellement vide)*
+- `Code.gs` : Point d'entrée serveur (`doGet`, routage, injection `SERVER_ROUTING`). *(implémenté — `doGet` blindé try/catch)*
+- `Controllers.gs` : Contrôleurs exposés au client (`ctrl*`). *(implémenté — 13 endpoints)*
+- `Database.gs` : Couche d'accès aux données (Google Sheets). *(implémenté — ORM + auto-migration)*
+- `Utils.gs` : Fonctions utilitaires serveur. *(implémenté)*
+- `Index.html` : Shell HTML principal (SPA). *(implémenté — bandeau diagnostic `initError`)*
+- `AdminView.html` : Vue admin. *(implémenté)*
+- `MatchView.html` : Vue joueur/match. *(implémenté)*
+- `Styles.html` : Styles CSS. *(implémenté)*
 - `ClientJS.html` : Logique client SPA complète (état, rendu, handlers). *(implémenté — 1110 lignes)*
-- `appscript.json` : Manifeste de déploiement.
+- `appscript.json` : Manifeste de déploiement. *(scopes OAuth complétés)*
 
 ## État Actuel du Code
-- **Implémenté** : `ClientJS.html` (couche client complète).
-- **Vides (0 octet)** : `Code.gs`, `Controllers.gs`, `Database.gs`, `Utils.gs`, `Index.html`, `AdminView.html`, `MatchView.html`, `Styles.html`.
-- **Conséquence** : Le backend et les vues HTML restent à implémenter pour que l'app fonctionne.
+- **Implémenté** : l'intégralité du projet (client + serveur + vues + manifeste).
+- **Reste à faire** : déploiement Web App et test end-to-end.

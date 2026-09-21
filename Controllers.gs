@@ -121,7 +121,7 @@ function ctrlDeleteMatch(adminToken, matchId) {
   });
 }
 
-function ctrlGetWhatsAppSummary(adminToken, matchId, webAppUrl) {
+function ctrlGetWhatsAppSummary(adminToken, matchId, webAppUrl, authUser) {
   try {
     const auth = ctrlVerifyAdminToken(adminToken);
     if (!auth.success) return auth;
@@ -133,7 +133,12 @@ function ctrlGetWhatsAppSummary(adminToken, matchId, webAppUrl) {
     const rides = getTableRecords(DB_SCHEMA.RIDES.sheetName).filter(r => r.match_id === matchId);
     const waiting = getTableRecords(DB_SCHEMA.WAITING_LIST.sheetName).filter(w => w.match_id === matchId);
 
-    const publicUrl = `${webAppUrl}?m=${matchId}`;
+    // Construction de l'URL publique en propageant authuser (multi-comptes Google)
+    let publicUrl = `${webAppUrl}?m=${matchId}`;
+    if (authUser !== undefined && authUser !== null && String(authUser).trim() !== '') {
+      publicUrl += `&authuser=${encodeURIComponent(String(authUser).trim())}`;
+    }
+
     const text = formatWhatsAppSummary(match, rides, waiting, publicUrl);
 
     return responseSuccess(text);

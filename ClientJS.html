@@ -8,10 +8,39 @@
     matchId: window.SERVER_ROUTING ? window.SERVER_ROUTING.matchId : null,
     adminToken: window.SERVER_ROUTING ? window.SERVER_ROUTING.adminToken : null,
     webAppUrl: window.SERVER_ROUTING ? window.SERVER_ROUTING.webAppUrl : '',
+    authUser: window.SERVER_ROUTING ? window.SERVER_ROUTING.authUser : null,
     currentUser: localStorage.getItem('covoid_username') || '',
     currentMatchData: null,
     adminMatches: []
   };
+
+  /**
+   * Construit une URL de la Web App en propageant le paramètre authuser
+   * (index du compte Google) pour éviter l'écran de sélection de compte
+   * dans les navigateurs multi-comptes.
+   * @param {Object} extraParams - Paramètres additionnels (ex: { m: 'matchId' }).
+   * @returns {string} URL complète.
+   */
+  function buildAppUrl(extraParams = {}) {
+    const base = AppState.webAppUrl || '';
+    if (!base) return '';
+
+    const params = new URLSearchParams();
+    Object.keys(extraParams).forEach(key => {
+      const val = extraParams[key];
+      if (val !== undefined && val !== null && val !== '') {
+        params.set(key, val);
+      }
+    });
+
+    // Propager authuser si connu (force le bon compte Google)
+    if (AppState.authUser !== undefined && AppState.authUser !== null && AppState.authUser !== '') {
+      params.set('authuser', AppState.authUser);
+    }
+
+    const query = params.toString();
+    return query ? `${base}?${query}` : base;
+  }
 
   function safeLower(val) {
     if (val === undefined || val === null) return '';
@@ -803,7 +832,7 @@
       `;
 
       card.querySelector('.btn-match-copy-link').onclick = () => {
-        const playerUrl = `${AppState.webAppUrl}?m=${m.id}`;
+        const playerUrl = buildAppUrl({ m: m.id });
         navigator.clipboard.writeText(playerUrl).then(() => {
           showToast('Lien joueur copié !', 'success');
         }).catch(() => {
@@ -812,7 +841,7 @@
       };
 
       card.querySelector('.btn-match-view').onclick = () => {
-        window.open(`${AppState.webAppUrl}?m=${m.id}`, '_blank');
+        window.open(buildAppUrl({ m: m.id }), '_blank');
       };
 
       card.querySelector('.btn-match-lock').onclick = async () => {
@@ -827,7 +856,7 @@
 
       card.querySelector('.btn-match-share').onclick = async () => {
         try {
-          const summary = await callServer('ctrlGetWhatsAppSummary', AppState.adminToken, m.id, AppState.webAppUrl);
+          const summary = await callServer('ctrlGetWhatsAppSummary', AppState.adminToken, m.id, AppState.webAppUrl, AppState.authUser);
           document.getElementById('textarea-whatsapp').value = summary;
           openModal('modal-whatsapp');
         } catch (err) {
@@ -856,6 +885,16 @@
 
     const loader = document.getElementById('view-loading');
     if (loader) loader.classList.add('hidden');
+
+    // Affichage du diagnostic d'erreur d'initialisation serveur (si présent)
+    if (window.SERVER_ROUTING && window.SERVER_ROUTING.initError) {
+      const errBox = document.getElementById('view-init-error');
+      const errMsg = document.getElementById('init-error-message');
+      if (errBox && errMsg) {
+        errMsg.textContent = window.SERVER_ROUTING.initError;
+        errBox.classList.remove('hidden');
+      }
+    }
 
     if (AppState.route === 'ADMIN') {
       document.getElementById('view-admin').classList.remove('hidden');
