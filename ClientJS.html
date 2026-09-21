@@ -58,13 +58,26 @@
   }
 
   function formatShortTime(timeStr) {
-    if (!timeStr) return '--:--';
-    const parts = String(timeStr).split(':');
-    if (parts.length >= 2) {
-      return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+    if (!timeStr && timeStr !== 0) return '--:--';
+
+    // Cas 1 : chaîne "HH:MM" ou "HH:MM:SS"
+    const str = String(timeStr);
+    const match = str.match(/^(\d{1,2}):(\d{2})/);
+    if (match) {
+      return `${match[1].padStart(2, '0')}:${match[2]}`;
     }
-    return timeStr;
+
+    // Cas 2 : objet Date (Google Sheets renvoie souvent une date complète pour une heure)
+    const d = new Date(timeStr);
+    if (!isNaN(d.getTime())) {
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+
+    return str;
   }
+
 
   function callServer(methodName, ...args) {
     return new Promise((resolve, reject) => {
@@ -145,12 +158,22 @@
     }
   }
 
-  function checkUserIdentityFlow() {
+  /**
+   * Ouvre la modale d'identité UNIQUEMENT lorsqu'une action le requiert.
+   * La consultation de la vue Match est désormais libre (lecture seule).
+   * @param {string} [reason] - Message contextuel expliquant pourquoi l'identité est demandée.
+   */
+  function checkUserIdentityFlow(reason) {
     if (AppState.route !== 'MATCH') return;
 
     const knownBlock = document.getElementById('identity-known-block');
     const unknownBlock = document.getElementById('identity-unknown-block');
     const knownName = document.getElementById('identity-known-name');
+    const reasonEl = document.getElementById('identity-reason');
+
+    if (reasonEl) {
+      reasonEl.textContent = reason || 'Indique ton prénom pour participer.';
+    }
 
     if (AppState.currentUser) {
       knownName.textContent = AppState.currentUser;
@@ -163,6 +186,27 @@
 
     openModal('modal-identity');
   }
+
+  /**
+   * Affiche un état de chargement sur un bouton (désactivation + spinner).
+   * @param {HTMLElement} btn - Bouton ciblé.
+   * @param {boolean} isLoading - Active/désactive l'état.
+   * @param {string} [loadingText] - Texte affiché pendant le chargement.
+   */
+  function setButtonLoading(btn, isLoading, loadingText) {
+    if (!btn) return;
+    if (isLoading) {
+      btn.dataset.originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.classList.add('opacity-60', 'pointer-events-none');
+      btn.innerHTML = `<span class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin-fast"></span>${loadingText ? `<span class="ml-1">${escapeHtml(loadingText)}</span>` : ''}`;
+    } else {
+      btn.disabled = false;
+      btn.classList.remove('opacity-60', 'pointer-events-none');
+      if (btn.dataset.originalHtml) btn.innerHTML = btn.dataset.originalHtml;
+    }
+  }
+
 
   async function loadMatchDetails() {
     if (!AppState.matchId) return;
@@ -219,9 +263,10 @@
         </div>`;
     } else {
       rides.forEach(ride => {
-        ridesContainer.appendChild(createRideCardElement(ride, match.is_locked));
+        ridesContainer.appendChild(createRideCardElement(ride, match.is_locked, waiting));
       });
     }
+
 
     const waitingContainer = document.getElementById('waiting-list-container');
     document.getElementById('waiting-count-badge').textContent = waiting.length;
@@ -238,10 +283,14 @@
         
         chip.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black shadow-sm ${isMe ? 'bg-amber-400 text-amber-950 border-2 border-amber-600' : 'bg-white text-amber-950 border border-amber-300'}`;
 
+        const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
+        const nOut = toBool(item.needs_outward);
+        const nRet = toBool(item.needs_return);
         let needTag = '';
-        if (item.needs_outward && item.needs_return) needTag = 'Aller-Ret';
-        else if (item.needs_outward) needTag = 'Aller';
-        else if (item.needs_return) needTag = 'Retour';
+        if (nOut && nRet) needTag = 'Aller-Ret';
+        else if (nOut) needTag = 'Aller';
+        else if (nRet) needTag = 'Retour';
+
 
         chip.innerHTML = `
           <span>${escapeHtml(item.player_name)} (${needTag})</span>
@@ -250,8 +299,9 @@
 
         const removeBtn = chip.querySelector('.btn-remove-waiting');
         if (removeBtn) {
-          removeBtn.onclick = () => handleLeaveWaitingList(item.id);
+          removeBtn.onclick = () => handleLeaveWaitingList(item.id, removeBtn);
         }
+
 
         waitingContainer.appendChild(chip);
       });
@@ -330,16 +380,9 @@
       badgeReturn.textContent = `Manque ${Math.abs(soldeReturn)}`;
     }
 
-    const globalIndicator = document.getElementById('global-status-indicator');
-    if (soldeOutward >= 0 && soldeReturn >= 0) {
-      globalIndicator.className = 'text-xs font-black px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center gap-1.5';
-      globalIndicator.innerHTML = `<span>🟢</span> <span>Places suffisantes</span>`;
-    } else {
-      const missingTotal = (soldeOutward < 0 ? Math.abs(soldeOutward) : 0) + (soldeReturn < 0 ? Math.abs(soldeReturn) : 0);
-      globalIndicator.className = 'text-xs font-black px-3 py-1 rounded-full bg-rose-100 text-rose-900 border border-rose-300 flex items-center gap-1.5';
-      globalIndicator.innerHTML = `<span>🔴</span> <span>Manque ${missingTotal} place(s)</span>`;
-    }
   }
+
+
 
   // OUVRIR LA MODALE DES DÉTAILS : ALLER PUIS RETOUR À LA SUITE
   function openSummaryDetailsModal() {
@@ -413,7 +456,8 @@
     document.getElementById('detail-count-direct-return').textContent = directReturnList.length;
     document.getElementById('detail-total-return').textContent = `${rdvReturnList.length + directReturnList.length} joueur(s)`;
 
-    renderChipsList('detail-list-rdv-return', rdvReturnList, 'bg-white text-indigo-950 border-indigo-200', 'Aucun joueur au RDV Retour');
+    renderChipsList('detail-list-rdv-return', rdvReturnList, 'bg-white text-orange-950 border-orange-200', 'Aucun joueur au RDV Retour');
+
     renderChipsList('detail-list-direct-return', directReturnList, 'bg-white text-slate-800 border-slate-300', 'Aucun joueur en direct Retour');
 
     openModal('modal-summary-details');
@@ -472,8 +516,9 @@
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn-tap py-2 px-3 bg-rose-100 text-rose-800 hover:bg-rose-200 font-bold rounded-xl text-xs flex items-center gap-1 border border-rose-300';
         deleteBtn.innerHTML = `<span>🗑️</span> <span>Annuler</span>`;
-        deleteBtn.onclick = () => handleDeleteVehicle(myRide.id);
+        deleteBtn.onclick = () => handleDeleteVehicle(myRide.id, deleteBtn);
         actionsEl.appendChild(deleteBtn);
+
       }
       return;
     }
@@ -505,14 +550,16 @@
             const btn = document.createElement('button');
             btn.className = 'btn-tap py-1.5 px-3 bg-rose-100 text-rose-800 hover:bg-rose-200 font-bold rounded-lg text-xs border border-rose-300';
             btn.textContent = `Quitter l'Aller (${pr.ride.driver_name})`;
-            btn.onclick = () => handleLeaveRide(pr.ride.id, AppState.currentUser, 'outward');
+            btn.onclick = () => handleLeaveRide(pr.ride.id, AppState.currentUser, 'outward', btn);
+
             actionsEl.appendChild(btn);
           }
           if (pr.inRet) {
             const btn = document.createElement('button');
             btn.className = 'btn-tap py-1.5 px-3 bg-rose-100 text-rose-800 hover:bg-rose-200 font-bold rounded-lg text-xs border border-rose-300';
             btn.textContent = `Quitter le Retour (${pr.ride.driver_name})`;
-            btn.onclick = () => handleLeaveRide(pr.ride.id, AppState.currentUser, 'return');
+            btn.onclick = () => handleLeaveRide(pr.ride.id, AppState.currentUser, 'return', btn);
+
             actionsEl.appendChild(btn);
           }
         });
@@ -524,10 +571,14 @@
     const myWait = waiting.find(w => safeLower(w.player_name) === myName);
     if (myWait) {
       statusCard.classList.remove('hidden');
+      const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
+      const needsOut = toBool(myWait.needs_outward);
+      const needsRet = toBool(myWait.needs_return);
       let needText = '';
-      if (myWait.needs_outward && myWait.needs_return) needText = 'Aller et Retour';
-      else if (myWait.needs_outward) needText = 'Aller uniquement';
+      if (needsOut && needsRet) needText = 'Aller et Retour';
+      else if (needsOut) needText = 'Aller uniquement';
       else needText = 'Retour uniquement';
+
 
       descEl.innerHTML = `Tu es <strong>en recherche d'une place</strong> (${needText}).`;
 
@@ -535,7 +586,8 @@
         const cancelBtn = document.createElement('button');
         cancelBtn.className = 'btn-tap py-2 px-3 bg-amber-200 text-amber-950 hover:bg-amber-300 font-bold rounded-xl text-xs border border-amber-400';
         cancelBtn.textContent = "Me retirer de la liste";
-        cancelBtn.onclick = () => handleLeaveWaitingList(myWait.id);
+        cancelBtn.onclick = () => handleLeaveWaitingList(myWait.id, cancelBtn);
+
         actionsEl.appendChild(cancelBtn);
       }
       return;
@@ -557,17 +609,36 @@
     document.getElementById('input-car-seats-return').value = ride.seats_return !== undefined ? ride.seats_return : (ride.seats_total || 1);
     document.getElementById('check-car-direct').checked = Boolean(ride.is_direct);
 
+    // En édition, les deux champs sont déjà remplis : on marque le Retour comme
+    // "touché" pour éviter que la synchro Aller -> Retour écrase la valeur existante.
+    const seatsRetEdit = document.getElementById('input-car-seats-return');
+    if (seatsRetEdit) seatsRetEdit.dataset.userTouched = 'true';
+
     openModal('modal-add-car');
+
   }
 
   // RENDU DU VÉHICULE : LE CONDUCTEUR EST AFFICHÉ AUTOMATIQUEMENT
-  function createRideCardElement(ride, isLocked) {
+  function createRideCardElement(ride, isLocked, waitingList) {
     const card = document.createElement('div');
     card.className = 'bg-white rounded-2xl p-4 shadow-sm border-2 border-slate-300 space-y-3';
 
     const myName = safeLower(AppState.currentUser);
     const isDriver = myName && safeLower(ride.driver_name) === myName;
     const canDelete = isDriver || Boolean(AppState.adminToken);
+
+    // Restriction liée à la liste d'attente : si l'utilisateur cherche une place
+    // pour UN SEUL sens, il ne peut rejoindre un véhicule que dans ce sens.
+    const waiting = Array.isArray(waitingList) ? waitingList : [];
+    const myWait = myName ? waiting.find(w => safeLower(w.player_name) === myName) : null;
+    // Attention : les booléens peuvent arriver en chaîne ("true"/"false") depuis Sheets.
+    // Boolean("false") vaut true → on normalise explicitement.
+    const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
+    const canJoinOutward = !myWait || toBool(myWait.needs_outward);
+    const canJoinReturn = !myWait || toBool(myWait.needs_return);
+
+
+
 
     const outwardPass = Array.isArray(ride.outward_passengers) ? ride.outward_passengers : [];
     const returnPass = Array.isArray(ride.return_passengers) ? ride.return_passengers : [];
@@ -603,60 +674,79 @@
         </div>
       </div>
 
-      <!-- Segment ALLER -->
-      ${!isDirectAlone && ride.offers_outward ? `
-        <div class="p-2.5 bg-blue-50/80 rounded-xl border border-blue-200 text-xs space-y-1.5">
-          <div class="flex justify-between items-center font-black text-xs">
-            <span class="text-blue-900">➡️ Aller</span>
-            <span class="${outwardPass.length >= seatsOut ? 'text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded' : 'text-blue-700 font-black'}">${outwardPass.length} / ${seatsOut} passager(s)</span>
-          </div>
-          <div class="flex flex-wrap gap-1.5 outward-chips">
-            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black bg-blue-600 text-white shadow-sm">
-              🚗 ${escapeHtml(ride.driver_name)} (Conducteur)
-            </span>
-          </div>
-          ${!isLocked ? `<div class="pt-1 outward-action"></div>` : ''}
+      <!-- Segments ALLER (gauche) & RETOUR (droite) côte à côte -->
+      ${!isDirectAlone ? `
+        <div style="display:flex; flex-direction:row; gap:0.75rem; align-items:stretch;">
+          <!-- Segment ALLER -->
+          ${ride.offers_outward ? `
+            <div style="flex:1 1 0; min-width:0;" class="p-2.5 bg-blue-50/80 rounded-xl border border-blue-200 text-xs space-y-1.5">
+
+              <div class="flex justify-between items-center font-black text-xs">
+                <span class="text-blue-900">➡️ Aller</span>
+                <span class="${outwardPass.length >= seatsOut ? 'text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded' : 'text-blue-700 font-black'}">${outwardPass.length} / ${seatsOut}</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5 outward-chips">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black bg-blue-600 text-white shadow-sm">
+                  🚗 ${escapeHtml(ride.driver_name)}
+                </span>
+              </div>
+              ${!isLocked ? `<div class="pt-1 outward-action"></div>` : ''}
+            </div>
+          ` : ''}
+
+          <!-- Segment RETOUR -->
+          ${ride.offers_return ? `
+            <div style="flex:1 1 0; min-width:0;" class="p-2.5 bg-orange-50/80 rounded-xl border border-orange-300 text-xs space-y-1.5">
+
+              <div class="flex justify-between items-center font-black text-xs">
+                <span class="text-orange-900">⬅️ Retour</span>
+                <span class="${returnPass.length >= seatsRet ? 'text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded' : 'text-orange-700 font-black'}">${returnPass.length} / ${seatsRet}</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5 return-chips">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black bg-orange-500 text-white shadow-sm">
+                  🚗 ${escapeHtml(ride.driver_name)}
+                </span>
+              </div>
+              ${!isLocked ? `<div class="pt-1 return-action"></div>` : ''}
+            </div>
+          ` : ''}
         </div>
       ` : ''}
 
-      <!-- Segment RETOUR -->
-      ${!isDirectAlone && ride.offers_return ? `
-        <div class="p-2.5 bg-indigo-50/80 rounded-xl border border-indigo-200 text-xs space-y-1.5">
-          <div class="flex justify-between items-center font-black text-xs">
-            <span class="text-indigo-900">⬅️ Retour</span>
-            <span class="${returnPass.length >= seatsRet ? 'text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded' : 'text-indigo-700 font-black'}">${returnPass.length} / ${seatsRet} passager(s)</span>
-          </div>
-          <div class="flex flex-wrap gap-1.5 return-chips">
-            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white shadow-sm">
-              🚗 ${escapeHtml(ride.driver_name)} (Conducteur)
-            </span>
-          </div>
-          ${!isLocked ? `<div class="pt-1 return-action"></div>` : ''}
-        </div>
-      ` : ''}
     `;
+
 
     const deleteBtn = card.querySelector('.btn-delete-ride');
     if (deleteBtn) {
-      deleteBtn.onclick = () => handleDeleteVehicle(ride.id);
+      deleteBtn.onclick = () => handleDeleteVehicle(ride.id, deleteBtn);
     }
+
 
     if (!isDirectAlone && ride.offers_outward) {
       const chipsContainer = card.querySelector('.outward-chips');
       outwardPass.forEach(pName => {
         chipsContainer.appendChild(createPassengerChip(ride.id, pName, 'outward', isLocked));
       });
+      // Chips "Libre" pour chaque place encore disponible à l'Aller
+      const freeOutward = Math.max(0, seatsOut - outwardPass.length);
+      for (let i = 0; i < freeOutward; i++) {
+        chipsContainer.appendChild(createFreeSeatChip('outward'));
+      }
+
 
       const actionContainer = card.querySelector('.outward-action');
       if (actionContainer) {
         const isUserIn = myName && outwardPass.map(n => safeLower(n)).includes(myName);
         const isDriverHimself = myName && safeLower(ride.driver_name) === myName;
-        if (!isUserIn && !isDriverHimself && outwardPass.length < seatsOut) {
+        if (!isUserIn && !isDriverHimself && outwardPass.length < seatsOut && canJoinOutward) {
           const joinBtn = document.createElement('button');
-          joinBtn.className = 'btn-tap w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg text-xs shadow-sm';
+          joinBtn.className = 'btn-tap w-full py-2 bg-blue-50/70 hover:bg-blue-100 text-blue-900 font-black rounded-lg text-xs border-2 border-blue-200 shadow-sm';
           joinBtn.textContent = '+ Monter à l\'Aller';
-          joinBtn.onclick = () => handleJoinRide(ride.id, 'outward');
+
+
+          joinBtn.onclick = () => handleJoinRide(ride.id, 'outward', joinBtn);
           actionContainer.appendChild(joinBtn);
+
         }
       }
     }
@@ -666,17 +756,27 @@
       returnPass.forEach(pName => {
         chipsContainer.appendChild(createPassengerChip(ride.id, pName, 'return', isLocked));
       });
+      // Chips "Libre" pour chaque place encore disponible au Retour
+      const freeReturn = Math.max(0, seatsRet - returnPass.length);
+      for (let i = 0; i < freeReturn; i++) {
+        chipsContainer.appendChild(createFreeSeatChip('return'));
+      }
 
       const actionContainer = card.querySelector('.return-action');
+
       if (actionContainer) {
         const isUserIn = myName && returnPass.map(n => safeLower(n)).includes(myName);
         const isDriverHimself = myName && safeLower(ride.driver_name) === myName;
-        if (!isUserIn && !isDriverHimself && returnPass.length < seatsRet) {
+        if (!isUserIn && !isDriverHimself && returnPass.length < seatsRet && canJoinReturn) {
           const joinBtn = document.createElement('button');
-          joinBtn.className = 'btn-tap w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-lg text-xs shadow-sm';
+          joinBtn.className = 'btn-tap w-full py-2 bg-orange-50/70 hover:bg-orange-100 text-orange-900 font-black rounded-lg text-xs border-2 border-orange-300 shadow-sm';
           joinBtn.textContent = '+ Monter au Retour';
-          joinBtn.onclick = () => handleJoinRide(ride.id, 'return');
+
+
+
+          joinBtn.onclick = () => handleJoinRide(ride.id, 'return', joinBtn);
           actionContainer.appendChild(joinBtn);
+
         }
       }
     }
@@ -697,59 +797,87 @@
     `;
 
     if (canRemove) {
-      chip.querySelector('.btn-remove-pass').onclick = () => handleLeaveRide(rideId, name, direction);
+      const removeBtn = chip.querySelector('.btn-remove-pass');
+      removeBtn.onclick = () => handleLeaveRide(rideId, name, direction, removeBtn);
     }
+    return chip;
+
+  }
+
+  /**
+   * Crée une "chip" représentant une place libre dans un véhicule.
+   * Affichée pour chaque place encore disponible (Aller ou Retour).
+   * @param {string} direction - 'outward' (bleu) ou 'return' (orange).
+   * @returns {HTMLElement} La chip "Libre".
+   */
+  function createFreeSeatChip(direction) {
+    const chip = document.createElement('span');
+    const isOutward = direction === 'outward';
+    chip.className = isOutward
+      ? 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border-2 border-dashed border-blue-300 text-blue-500 bg-white/60'
+      : 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border-2 border-dashed border-orange-300 text-orange-500 bg-white/60';
+    chip.textContent = 'Libre';
     return chip;
   }
 
-  async function handleJoinRide(rideId, direction) {
+
+  async function handleJoinRide(rideId, direction, btn) {
     if (!AppState.currentUser) {
-      checkUserIdentityFlow();
+      checkUserIdentityFlow('Indique ton prénom pour rejoindre ce véhicule.');
       return;
     }
 
+    setButtonLoading(btn, true, 'Inscription...');
     try {
       await callServer('ctrlJoinRide', AppState.matchId, rideId, AppState.currentUser, direction);
       showToast('Vous avez rejoint le véhicule !', 'success');
       loadMatchDetails();
     } catch (err) {
       showToast(err.message, 'error');
+      setButtonLoading(btn, false);
     }
   }
 
-  async function handleLeaveRide(rideId, playerName, direction) {
+  async function handleLeaveRide(rideId, playerName, direction, btn) {
+    setButtonLoading(btn, true);
     try {
       await callServer('ctrlLeaveRide', AppState.matchId, rideId, playerName, direction);
       showToast('Passager retiré.', 'info');
       loadMatchDetails();
     } catch (err) {
       showToast(err.message, 'error');
+      setButtonLoading(btn, false);
     }
   }
 
-  async function handleDeleteVehicle(rideId) {
+  async function handleDeleteVehicle(rideId, btn) {
     if (!confirm('Supprimer votre véhicule ? Les passagers inscrits basculeront automatiquement dans la liste "Besoin d\'une place".')) {
       return;
     }
 
+    setButtonLoading(btn, true);
     try {
       await callServer('ctrlDeleteVehicle', AppState.matchId, rideId, AppState.currentUser, AppState.adminToken);
       showToast('Véhicule supprimé.', 'info');
       loadMatchDetails();
     } catch (err) {
       showToast(err.message, 'error');
+      setButtonLoading(btn, false);
     }
   }
 
-  async function handleLeaveWaitingList(waitingId) {
+  async function handleLeaveWaitingList(waitingId, btn) {
+    setButtonLoading(btn, true);
     try {
       await callServer('ctrlLeaveWaitingList', AppState.matchId, waitingId, AppState.currentUser, AppState.adminToken);
       showToast('Retiré de la liste d\'attente.', 'info');
       loadMatchDetails();
     } catch (err) {
       showToast(err.message, 'error');
+      setButtonLoading(btn, false);
     }
   }
+
 
   // VUE ADMIN
   async function loadAdminDashboard() {
@@ -812,23 +940,24 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-5 gap-1.5 pt-1">
-          <button class="btn-match-copy-link btn-tap py-2.5 bg-indigo-50 text-indigo-800 hover:bg-indigo-100 font-black rounded-xl text-xs flex items-center justify-center gap-1 border border-indigo-200" title="Copier le lien Joueur">
-            <span>🔗</span>
+        <div class="grid grid-cols-2 gap-1.5 pt-1">
+          <button class="btn-match-copy-link btn-tap py-2.5 bg-indigo-50 text-indigo-800 hover:bg-indigo-100 font-black rounded-xl text-[11px] flex items-center justify-center gap-1 border border-indigo-200">
+            <span>🔗</span> <span>Lien joueur</span>
           </button>
-          <button class="btn-match-view btn-tap py-2.5 bg-blue-50 text-blue-800 hover:bg-blue-100 font-black rounded-xl text-xs flex items-center justify-center gap-1 border border-blue-200" title="Voir comme Joueur">
-            <span>👁️</span>
+          <button class="btn-match-view btn-tap py-2.5 bg-blue-50 text-blue-800 hover:bg-blue-100 font-black rounded-xl text-[11px] flex items-center justify-center gap-1 border border-blue-200">
+            <span>👁️</span> <span>Voir</span>
           </button>
-          <button class="btn-match-lock btn-tap py-2.5 bg-slate-100 text-slate-800 hover:bg-slate-200 font-black rounded-xl text-xs flex items-center justify-center gap-1 border border-slate-300" title="${m.is_locked ? 'Déverrouiller' : 'Verrouiller'}">
-            <span>${m.is_locked ? '🔓' : '🔒'}</span>
+          <button class="btn-match-lock btn-tap py-2.5 bg-slate-100 text-slate-800 hover:bg-slate-200 font-black rounded-xl text-[11px] flex items-center justify-center gap-1 border border-slate-300">
+            <span>${m.is_locked ? '🔓' : '🔒'}</span> <span>${m.is_locked ? 'Déverrouiller' : 'Verrouiller'}</span>
           </button>
-          <button class="btn-match-share btn-tap py-2.5 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-black rounded-xl text-xs flex items-center justify-center gap-1 border border-emerald-300" title="Synthèse WhatsApp">
-            <span>💬</span>
+          <button class="btn-match-share btn-tap py-2.5 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-black rounded-xl text-[11px] flex items-center justify-center gap-1 border border-emerald-300">
+            <span>💬</span> <span>WhatsApp</span>
           </button>
-          <button class="btn-match-delete btn-tap py-2.5 bg-rose-50 text-rose-800 hover:bg-rose-100 font-black rounded-xl text-xs flex items-center justify-center gap-1 border border-rose-300" title="Supprimer">
-            <span>🗑️</span>
+          <button class="btn-match-delete btn-tap col-span-2 py-2.5 bg-rose-50 text-rose-800 hover:bg-rose-100 font-black rounded-xl text-[11px] flex items-center justify-center gap-1 border border-rose-300">
+            <span>🗑️</span> <span>Supprimer le match</span>
           </button>
         </div>
+
       `;
 
       card.querySelector('.btn-match-copy-link').onclick = () => {
@@ -902,8 +1031,10 @@
     } else if (AppState.route === 'MATCH') {
       document.getElementById('view-match').classList.remove('hidden');
       loadMatchDetails();
-      checkUserIdentityFlow();
+      // Consultation LIBRE : on n'impose plus l'identité à l'ouverture.
+      // La modale d'identité n'apparaît qu'au moment d'une action (rejoindre/proposer).
     } else {
+
       document.getElementById('view-no-access').classList.remove('hidden');
     }
 
@@ -1016,12 +1147,35 @@
         document.getElementById('input-edit-ride-id').value = '';
         document.getElementById('input-car-driver').value = AppState.currentUser || '';
         document.getElementById('input-car-driver').disabled = false;
-        document.getElementById('input-car-seats-outward').value = '2';
-        document.getElementById('input-car-seats-return').value = '1';
+        document.getElementById('input-car-seats-outward').value = '3';
+        document.getElementById('input-car-seats-return').value = '3';
         document.getElementById('check-car-direct').checked = false;
+        // Réinitialise le flag de synchronisation Aller -> Retour
+        const seatsOutInput = document.getElementById('input-car-seats-outward');
+        const seatsRetInput = document.getElementById('input-car-seats-return');
+        if (seatsRetInput) seatsRetInput.dataset.userTouched = 'false';
+        if (seatsOutInput) seatsOutInput.dataset.userTouched = 'false';
         openModal('modal-add-car');
       };
     }
+
+    // Synchronisation intelligente Aller -> Retour :
+    // Tant que l'utilisateur n'a pas modifié le Retour lui-même, changer l'Aller
+    // répercute la valeur sur le Retour. Dès que le Retour est touché, les deux
+    // champs deviennent totalement indépendants.
+    const seatsOutInput = document.getElementById('input-car-seats-outward');
+    const seatsRetInput = document.getElementById('input-car-seats-return');
+    if (seatsOutInput && seatsRetInput) {
+      seatsOutInput.addEventListener('input', () => {
+        if (seatsRetInput.dataset.userTouched !== 'true') {
+          seatsRetInput.value = seatsOutInput.value;
+        }
+      });
+      seatsRetInput.addEventListener('input', () => {
+        seatsRetInput.dataset.userTouched = 'true';
+      });
+    }
+
 
     // Direct sur place
     const btnQuickDirect = document.getElementById('btn-quick-direct');
@@ -1047,6 +1201,7 @@
 
         try {
           await callServer('ctrlRegisterVehicle', AppState.matchId, payload);
+
           showToast('Enregistré : Direct par vos propres moyens !', 'success');
           loadMatchDetails();
         } catch (err) {
@@ -1135,15 +1290,27 @@
       };
     }
 
-    // Copie WhatsApp
+    // Copie WhatsApp (API moderne avec repli sur execCommand)
     const btnCopyWhatsApp = document.getElementById('btn-copy-whatsapp');
     if (btnCopyWhatsApp) {
       btnCopyWhatsApp.onclick = () => {
         const textarea = document.getElementById('textarea-whatsapp');
-        textarea.select();
-        document.execCommand('copy');
-        showToast('Synthèse copiée dans le presse-papier !', 'success');
+        const text = textarea.value;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            showToast('Synthèse copiée dans le presse-papier !', 'success');
+          }).catch(() => {
+            textarea.select();
+            document.execCommand('copy');
+            showToast('Synthèse copiée dans le presse-papier !', 'success');
+          });
+        } else {
+          textarea.select();
+          document.execCommand('copy');
+          showToast('Synthèse copiée dans le presse-papier !', 'success');
+        }
       };
     }
+
   });
 </script>

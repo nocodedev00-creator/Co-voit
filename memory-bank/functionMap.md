@@ -20,7 +20,9 @@ Ce document recense les fonctions clés du projet pour faciliter la maintenance 
 | `openModal(modalId)` / `closeModal(modalId)` | Affiche/masque une modale. |
 | `setUsername(name)` | Définit et persiste le nom joueur (`localStorage`). |
 | `updateUserDisplay()` | Met à jour l'affichage du nom courant. |
-| `checkUserIdentityFlow()` | Gère la modale d'identité (connu/inconnu) sur la route MATCH. |
+| `checkUserIdentityFlow(reason)` | Ouvre la modale d'identité (connu/inconnu) UNIQUEMENT à l'action ; `reason` = message contextuel affiché dans `#identity-reason`. |
+| `setButtonLoading(btn, isLoading, loadingText)` | Affiche/masque un spinner + désactive un bouton pendant un appel serveur. |
+
 | `loadMatchDetails()` | Charge les détails du match via `ctrlGetMatchDetails` puis rend la vue. |
 | `renderMatchView(data)` | Rend la vue match (titre, statut, résumé, véhicules, liste d'attente). |
 | `calculateAndRenderSummary(rides, waiting)` | Calcule et affiche les soldes de places Aller/Retour et l'indicateur global. |

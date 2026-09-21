@@ -53,4 +53,73 @@ Ce document trace l'historique des problèmes techniques complexes et les soluti
 - `Controllers.gs` : `ctrlGetWhatsAppSummary(..., authUser)` → `&authuser=` dans le lien public.
 - **Alternative écartée** : Option B (hébergement statique + Apps Script en API) — garantie 100% mais migration lourde.
 
+## 2026-09-21 : Améliorations UX (efficacité & simplicité)
+
+**Contexte** : Audit UX demandé — rendre l'app plus visuelle et simple.
+
+### ✅ Décisions
+- **Consultation libre** : suppression de l'identité obligatoire à l'ouverture ; modale demandée uniquement à l'action (`checkUserIdentityFlow(reason)`).
+- **Feedback de chargement** : `setButtonLoading()` (spinner + désactivation) sur toutes les actions serveur.
+- **Vocabulaire unifié** : "Je conduis" / "Je cherche" / "Je m'y rends seul" ; "Recherchent" remplace "À véhiculer".
+- **Bilan en héros** : `#global-status-indicator` agrandi (texte base, bordure 2px) = chiffre clé en avant.
+- **Admin** : boutons libellés (plus d'icônes seules).
+- **Copie** : `navigator.clipboard` avec repli `execCommand`.
+- **Note** : `ClientJS.html` > 1100 lignes → candidat à un découpage futur (règle 300 lignes).
+
+## 2026-09-21 : Retours utilisateur (couleurs & état vide)
+
+### ✅ Décisions
+- **Code couleur Aller/Retour** : Aller = **bleu**, Retour = **orange** (les deux bleus n'étaient pas distinguables). Appliqué : bilan, cartes véhicules, boutons "Monter", modale détails.
+- **État vide neutre** : 0 joueur inscrit → fenêtre **grise** "Aucune inscription pour le moment" (plus de faux "Places suffisantes").
+- **Correctif** : `cine` parasite supprimé dans le handler `btn-quick-direct` (cassait le JS).
+
+## 2026-09-21 : Bilan scindé & places indépendantes
+
+### ✅ Décisions
+- **Bilan scindé** : ne plus cumuler les manques Aller+Retour (trajets distincts). Affichage "Il manque Aller : X • Retour : Y place(s)".
+- **Places Aller/Retour indépendantes** : défaut 3/3 dans la modale "Je conduis". Synchro Aller→Retour uniquement tant que le Retour n'est pas touché (`dataset.userTouched`). En édition, Retour marqué "touché" pour préserver la valeur.
+
+## 2026-09-21 : Heure hh:mm & bilan scindé en 2 blocs
+
+### ✅ Décisions
+- **Heure hh:mm** : `formatShortTime` gère les objets Date (Google Sheets renvoie une date complète pour une heure) en plus des chaînes "HH:MM".
+- **Bilan scindé en 2 blocs** : `#global-status-indicator` remplacé par `#global-status-outward` + `#global-status-return`. État visuel immédiat : ✅ vert (libre/complet), ❌ rouge (manque X), gris (aucune donnée). Lecture instantanée du manque par sens.
+
+## 2026-09-21 : Suppression du bloc bilan redondant
+
+### ✅ Décision
+- Le bloc `#global-status-outward`/`#global-status-return` (ajouté précédemment) était **redondant** avec le détail ALLER/RETOUR existant (`#badge-bilan-outward`/`#badge-bilan-return`). Supprimé du HTML + code JS mort (`applyStatus`) retiré. Le détail A/R reste la seule source du bilan.
+
+## 2026-09-21 : Cohérence couleur boutons "Monter"
+
+### ✅ Décision
+- Les boutons "+ Monter à l'Aller/Retour" (dans les cartes véhicules) reprennent les **couleurs des blocs bilan** correspondants : Aller = `bg-blue-50/70` + `border-blue-200` + texte `blue-900` ; Retour = `bg-orange-50/70` + `border-orange-300` + texte `orange-900`. Objectif : repère visuel cohérent, l'utilisateur ne se perd pas entre le bilan et les actions.
+
+## 2026-09-21 : Restriction des boutons "Monter" selon la liste d'attente
+
+### ✅ Décision
+- Si un joueur est en liste d'attente pour **un seul sens** (ex. Retour uniquement), il ne peut rejoindre un véhicule que dans ce sens. Évite les incohérences (chercher une place Retour mais monter à l'Aller).
+
+### ✅ Double garde (client + serveur)
+- **Client** : `createRideCardElement(ride, isLocked, waitingList)` reçoit `waiting` **explicitement** (au lieu de lire `AppState.currentMatchData`, source de fragilité). Normalisation booléenne `toBool` (Sheets peut renvoyer "true"/"false" en chaîne ; `Boolean("false")` vaut `true`). Masque le bouton "+ Monter" du sens non demandé.
+- **Serveur** : `ctrlJoinRide` refuse l'action si le joueur est en liste d'attente et que le sens demandé n'est pas dans ses besoins. Garantie absolue même si le client est contourné/obsolète.
+- **Cause du "ça ne marche pas"** : probablement déploiement non rafraîchi (Gérer les déploiements → Nouvelle version) ou cache navigateur. La garde serveur rend le comportement fiable indépendamment du client.
+
+## 2026-09-21 : Carte véhicule en 2 colonnes (Aller gauche / Retour droite)
+
+### ✅ Décision
+- Les segments ALLER et RETOUR d'une carte véhicule sont affichés **côte à côte** (Aller à gauche, Retour à droite), alignés sur le layout du bloc "Bilan des places".
+- L'en-tête (avatar + nom conducteur + badge Direct + bouton supprimer) reste **pleine largeur** au-dessus.
+- **Implémentation robuste** : conteneur `style="display:flex; flex-direction:row; gap:0.75rem; align-items:stretch;"` + chaque segment `style="flex:1 1 0; min-width:0;"`. On n'utilise **pas** `grid-cols-2` de Tailwind pour ce bloc, afin d'éviter tout risque de purge/JIT ou de cache. Le côte-à-côte est garanti par CSS inline.
+- Compteurs passagers raccourcis (`X / Y`) pour tenir dans une demi-largeur.
+
+
+
+
+
+
+
+
+
+
 

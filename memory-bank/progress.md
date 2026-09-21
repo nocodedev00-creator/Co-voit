@@ -16,6 +16,8 @@
 - ⏳ **Déploiement Web App** : l'erreur "Impossible d'ouvrir le fichier" indique un problème de déploiement/URL, pas de code.
 - ✅ **Durcissement code** : `doGet` blindé (try/catch), scopes OAuth complétés, bandeau diagnostic `initError`.
 - ⏳ **Test end-to-end** : créer un match (admin), s'inscrire (joueur), vérifier la synthèse WhatsApp.
+- ✅ **Améliorations UX (2026-09-21)** : consultation libre, feedback de chargement, vocabulaire unifié, bilan en héros, boutons admin libellés, copie WhatsApp moderne.
+
 
 ## Détail des fichiers
 | Fichier | Taille | Statut |
