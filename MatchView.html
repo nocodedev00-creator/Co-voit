@@ -1,0 +1,402 @@
+<!-- Vue Joueur : Match & Covoiturage -->
+<div id="view-match" class="hidden space-y-3.5">
+
+  <!-- 1. BANDEAU IDENTITÉ JOUEUR -->
+  <div class="bg-slate-900 text-white px-4 py-2.5 rounded-2xl flex items-center justify-between shadow-md border border-slate-800">
+    <div class="flex items-center gap-2 text-xs">
+      <span class="text-base">👤</span>
+      <span>Joueur connecté : <strong id="display-current-user" class="text-blue-400 font-black underline underline-offset-2">Visiteur</strong></span>
+    </div>
+    <button id="btn-change-username" class="btn-tap bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold px-3 py-1 rounded-lg border border-slate-600">
+      Changer
+    </button>
+  </div>
+
+  <!-- 2. ENCART "MON STATUT" -->
+  <div id="user-status-card" class="hidden bg-blue-50/90 rounded-2xl p-3.5 shadow-sm border-2 border-blue-400 space-y-2">
+    <div class="flex items-center justify-between">
+      <span class="text-xs font-black text-blue-950 uppercase tracking-wider flex items-center gap-1.5">
+        <span>📌</span> Mon inscription
+      </span>
+      <span id="user-status-badge" class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-600 text-white shadow-sm">Inscrit</span>
+    </div>
+    <p id="user-status-description" class="text-xs font-bold text-slate-800 leading-relaxed"></p>
+    <div id="user-status-actions" class="flex flex-wrap gap-2 pt-1"></div>
+  </div>
+
+  <!-- 3. BANNIÈRE MATCH LOGISTIQUE (1 seule ligne) -->
+  <div class="bg-white rounded-2xl p-3.5 shadow-sm border-2 border-slate-200 space-y-2.5">
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 truncate">
+        <span id="match-status-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300 shrink-0">
+          Ouvert
+        </span>
+        <h1 id="match-title-display" class="text-base font-black text-slate-900 truncate">Chargement...</h1>
+      </div>
+      <button id="btn-player-refresh" class="btn-tap p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 border border-slate-200 shrink-0" title="Actualiser">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="flex items-center gap-2 text-xs text-slate-700 bg-slate-100 px-3 py-2 rounded-xl border border-slate-200 overflow-hidden whitespace-nowrap">
+      <span class="font-extrabold text-slate-900 flex items-center gap-1 shrink-0">
+        <span>📅</span> <span id="match-date-display">--/--/--</span>
+      </span>
+      <span class="text-slate-400 font-bold shrink-0">•</span>
+      <span class="font-extrabold text-slate-900 flex items-center gap-1 shrink-0">
+        <span>⏰</span> <span id="match-time-display">--:--</span>
+      </span>
+      <span class="text-slate-400 font-bold shrink-0">•</span>
+      <span class="truncate flex items-center gap-1 text-slate-800 font-semibold min-w-0">
+        <span>📍</span> <span id="match-place-display" class="truncate">-</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- 4. TABLEAU DE BORD SYNTHÈSE (CLIQUABLE) -->
+  <div class="bg-white rounded-2xl p-4 shadow-sm border-2 border-slate-200 space-y-3">
+    
+    <div id="btn-open-summary-details" class="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer hover:bg-slate-50 p-1.5 rounded-xl transition" title="Cliquer pour voir le détail des listes Aller et Retour">
+      <div class="flex items-center gap-2">
+        <h2 class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+          <span>📊</span>
+          <span>Bilan des places</span>
+        </h2>
+        <span class="text-[10px] bg-blue-100 text-blue-900 font-black px-2 py-0.5 rounded-md border border-blue-300 flex items-center gap-1">
+          <span>Voir détails A/R</span>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </span>
+      </div>
+      <span id="global-status-indicator" class="text-xs font-black px-3 py-1 rounded-full shadow-sm">-</span>
+    </div>
+
+    <!-- 2 indicateurs hauts -->
+    <div class="grid grid-cols-2 gap-2 text-center text-xs">
+      <div class="bg-slate-100 p-2.5 rounded-xl border border-slate-200">
+        <span class="text-slate-500 font-semibold block text-[10px] uppercase">Ont répondu</span>
+        <strong id="stat-total-respondents" class="text-slate-900 text-sm font-black">0 joueur(s)</strong>
+      </div>
+      <div class="bg-slate-100 p-2.5 rounded-xl border border-slate-200">
+        <span class="text-slate-500 font-semibold block text-[10px] uppercase">Direct sur place</span>
+        <strong id="stat-direct-count" class="text-indigo-700 text-sm font-black">0 joueur(s)</strong>
+      </div>
+    </div>
+
+    <!-- ALLER & RETOUR STRICTEMENT ALIGNÉS -->
+    <div class="grid grid-cols-2 gap-3 pt-1">
+      
+      <!-- ALLER -->
+      <div class="bg-blue-50/70 p-3 rounded-xl border-2 border-blue-200 flex flex-col justify-between">
+        <div class="flex items-center justify-between min-h-[32px] gap-1 pb-2 border-b border-blue-200/80">
+          <span class="font-black text-xs text-blue-900 whitespace-nowrap">➡️ ALLER</span>
+          <span id="badge-bilan-outward" class="text-[10px] font-black px-2 py-0.5 rounded-md whitespace-nowrap shrink-0">-</span>
+        </div>
+        <div class="text-[11px] pt-2 space-y-1.5">
+          <div class="flex justify-between items-center h-5">
+            <span class="text-slate-600 font-semibold">Places dispo :</span>
+            <strong id="stat-outward-seats" class="text-blue-950 font-black text-sm">0</strong>
+          </div>
+          <div class="flex justify-between items-center h-5">
+            <span class="text-slate-600 font-semibold">À véhiculer :</span>
+            <strong id="stat-outward-demands" class="text-slate-900 font-black text-sm">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- RETOUR -->
+      <div class="bg-indigo-50/70 p-3 rounded-xl border-2 border-indigo-200 flex flex-col justify-between">
+        <div class="flex items-center justify-between min-h-[32px] gap-1 pb-2 border-b border-indigo-200/80">
+          <span class="font-black text-xs text-indigo-900 whitespace-nowrap">⬅️ RETOUR</span>
+          <span id="badge-bilan-return" class="text-[10px] font-black px-2 py-0.5 rounded-md whitespace-nowrap shrink-0">-</span>
+        </div>
+        <div class="text-[11px] pt-2 space-y-1.5">
+          <div class="flex justify-between items-center h-5">
+            <span class="text-slate-600 font-semibold">Places dispo :</span>
+            <strong id="stat-return-seats" class="text-indigo-950 font-black text-sm">0</strong>
+          </div>
+          <div class="flex justify-between items-center h-5">
+            <span class="text-slate-600 font-semibold">À véhiculer :</span>
+            <strong id="stat-return-demands" class="text-slate-900 font-black text-sm">0</strong>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 5. BOUTONS D'ACTION DU JOUEUR -->
+  <div class="grid grid-cols-3 gap-2.5 pt-1" id="match-actions-container">
+    <button id="btn-open-add-car" class="btn-tap bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-1 rounded-xl text-xs flex flex-col items-center justify-center gap-1 shadow-md shadow-blue-200 border border-blue-500">
+      <span class="text-lg">🚗</span>
+      <span>Proposer voiture</span>
+    </button>
+    <button id="btn-open-waiting-list" class="btn-tap bg-amber-500 hover:bg-amber-600 text-white font-black py-3 px-1 rounded-xl text-xs flex flex-col items-center justify-center gap-1 shadow-md shadow-amber-200 border border-amber-400">
+      <span class="text-lg">🙋</span>
+      <span>Besoin de place</span>
+    </button>
+    <button id="btn-quick-direct" class="btn-tap bg-slate-800 hover:bg-slate-900 text-white font-black py-3 px-1 rounded-xl text-xs flex flex-col items-center justify-center gap-1 shadow-md shadow-slate-300 border border-slate-700">
+      <span class="text-lg">📍</span>
+      <span>Direct sur place</span>
+    </button>
+  </div>
+
+  <!-- Alerte Verrouillé -->
+  <div id="banner-locked" class="hidden bg-rose-100 border-2 border-rose-300 text-rose-900 text-xs font-black p-3 rounded-xl text-center shadow-sm">
+    🔒 Inscriptions verrouillées par le responsable d'équipe.
+  </div>
+
+  <!-- 6. SECTION VÉHICULES -->
+  <div class="space-y-3 pt-2">
+    <div class="flex items-center justify-between border-b-2 border-slate-300 pb-1.5">
+      <h2 class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+        <span>🚘</span>
+        <span>Voitures disponibles</span>
+      </h2>
+      <span id="rides-count-badge" class="text-xs bg-slate-800 text-white px-2.5 py-0.5 rounded-full font-black">0</span>
+    </div>
+    <div id="rides-list-container" class="space-y-3"></div>
+  </div>
+
+  <!-- 7. SECTION LISTE D'ATTENTE -->
+  <div class="bg-amber-50 rounded-2xl p-4 shadow-sm border-2 border-amber-300 space-y-2.5">
+    <div class="flex items-center justify-between border-b border-amber-200 pb-2">
+      <h2 class="text-xs font-black uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
+        <span>⚠️</span>
+        <span>En recherche d'une place</span>
+      </h2>
+      <span id="waiting-count-badge" class="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-black border border-amber-300">0</span>
+    </div>
+    <div id="waiting-list-container" class="flex flex-wrap gap-2 pt-1"></div>
+  </div>
+
+</div>
+
+<!-- MODALE DÉTAIL DES JOUEURS : ALLER PUIS RETOUR À LA SUITE -->
+<div id="modal-summary-details" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="modal-backdrop fixed inset-0" id="backdrop-summary-details"></div>
+  <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-5 relative z-10 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto border-t-2 sm:border-2 border-slate-200">
+    
+    <!-- En-tête -->
+    <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">👥</span>
+        <div>
+          <h3 class="text-base font-black text-slate-900">Répartition des joueurs</h3>
+          <p class="text-[11px] text-slate-500 font-semibold">Détail des présences Aller & Retour</p>
+        </div>
+      </div>
+      <button class="btn-close-modal p-1.5 text-slate-400 hover:text-slate-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- ==================== 1. TRAJET ALLER ==================== -->
+    <div class="space-y-2.5">
+      <div class="flex items-center justify-between bg-blue-600 text-white px-3 py-1.5 rounded-xl shadow-sm">
+        <span class="font-black text-xs uppercase tracking-wider flex items-center gap-1.5">
+          <span>➡️</span> Trajet ALLER
+        </span>
+        <span id="detail-total-outward" class="text-[10px] font-black bg-blue-800 px-2 py-0.5 rounded-md">0 joueur(s)</span>
+      </div>
+
+      <!-- ALLER : Au départ du RDV -->
+      <div class="bg-blue-50/90 p-3 rounded-xl border-2 border-blue-200 space-y-1.5">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-black text-blue-950 uppercase flex items-center gap-1">
+            <span>📍</span> Au départ du RDV
+          </span>
+          <span id="detail-count-rdv-outward" class="text-[10px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-full">0</span>
+        </div>
+        <p class="text-[10px] text-slate-500 font-semibold">Conducteurs, passagers et inscrits en attente :</p>
+        <div id="detail-list-rdv-outward" class="flex flex-wrap gap-1.5 pt-1"></div>
+      </div>
+
+      <!-- ALLER : Direct sur place -->
+      <div class="bg-slate-50 p-3 rounded-xl border-2 border-slate-200 space-y-1.5">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-black text-slate-800 uppercase flex items-center gap-1">
+            <span>🎯</span> Directement sur place
+          </span>
+          <span id="detail-count-direct-outward" class="text-[10px] font-black bg-slate-700 text-white px-2 py-0.5 rounded-full">0</span>
+        </div>
+        <p class="text-[10px] text-slate-500 font-semibold">Joueurs se déplaçant par leurs propres moyens :</p>
+        <div id="detail-list-direct-outward" class="flex flex-wrap gap-1.5 pt-1"></div>
+      </div>
+    </div>
+
+    <!-- ==================== 2. TRAJET RETOUR (À LA SUITE) ==================== -->
+    <div class="space-y-2.5 pt-3 border-t-2 border-slate-100">
+      <div class="flex items-center justify-between bg-indigo-600 text-white px-3 py-1.5 rounded-xl shadow-sm">
+        <span class="font-black text-xs uppercase tracking-wider flex items-center gap-1.5">
+          <span>⬅️</span> Trajet RETOUR
+        </span>
+        <span id="detail-total-return" class="text-[10px] font-black bg-indigo-800 px-2 py-0.5 rounded-md">0 joueur(s)</span>
+      </div>
+
+      <!-- RETOUR : Vers le RDV -->
+      <div class="bg-indigo-50/90 p-3 rounded-xl border-2 border-indigo-200 space-y-1.5">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-black text-indigo-950 uppercase flex items-center gap-1">
+            <span>📍</span> Retour au point de RDV
+          </span>
+          <span id="detail-count-rdv-return" class="text-[10px] font-black bg-indigo-600 text-white px-2 py-0.5 rounded-full">0</span>
+        </div>
+        <p class="text-[10px] text-slate-500 font-semibold">Conducteurs retour, passagers et inscrits en attente :</p>
+        <div id="detail-list-rdv-return" class="flex flex-wrap gap-1.5 pt-1"></div>
+      </div>
+
+      <!-- RETOUR : Direct / Moyens personnels -->
+      <div class="bg-slate-50 p-3 rounded-xl border-2 border-slate-200 space-y-1.5">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-black text-slate-800 uppercase flex items-center gap-1">
+            <span>🎯</span> Directement / Moyens personnels
+          </span>
+          <span id="detail-count-direct-return" class="text-[10px] font-black bg-slate-700 text-white px-2 py-0.5 rounded-full">0</span>
+        </div>
+        <p class="text-[10px] text-slate-500 font-semibold">Joueurs rentrant par leurs propres moyens :</p>
+        <div id="detail-list-direct-return" class="flex flex-wrap gap-1.5 pt-1"></div>
+      </div>
+    </div>
+
+    <button type="button" class="btn-close-modal btn-tap w-full bg-slate-900 text-white font-bold py-3 rounded-xl text-xs mt-2">
+      Fermer
+    </button>
+  </div>
+</div>
+
+<!-- MODALE IDENTITÉ -->
+<div id="modal-identity" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+  <div class="modal-backdrop fixed inset-0"></div>
+  <div class="bg-white w-full max-w-sm rounded-3xl p-6 relative z-10 shadow-2xl space-y-4 text-center border-2 border-slate-200">
+    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+      👋
+    </div>
+    
+    <div id="identity-known-block" class="hidden space-y-3">
+      <h3 class="text-base font-black text-slate-800">Ravi de te revoir !</h3>
+      <p class="text-xs text-slate-600">Tu es bien <strong id="identity-known-name" class="text-blue-600 font-black text-sm"></strong> ?</p>
+      <div class="flex flex-col gap-2 pt-2">
+        <button id="btn-identity-confirm" class="btn-tap w-full bg-blue-600 text-white font-black py-3.5 rounded-xl text-xs shadow-md">
+          Oui, c'est moi
+        </button>
+        <button id="btn-identity-change" class="btn-tap w-full bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs border border-slate-300">
+          Non, changer de prénom
+        </button>
+      </div>
+    </div>
+
+    <div id="identity-unknown-block" class="hidden space-y-3 text-left">
+      <h3 class="text-base font-black text-slate-800 text-center">Bienvenue sur Co'Voit' !</h3>
+      <p class="text-xs text-slate-500 text-center">Indique ton prénom pour participer.</p>
+      <form id="form-identity" class="space-y-3 pt-2">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ton Prénom</label>
+          <input type="text" id="input-identity-name" required placeholder="Ex: Alexandre" class="w-full px-3.5 py-3 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm font-semibold">
+        </div>
+        <button type="submit" class="btn-tap w-full bg-blue-600 text-white font-black py-3.5 rounded-xl text-xs shadow-md">
+          C'est parti !
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE VÉHICULE -->
+<div id="modal-add-car" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="modal-backdrop fixed inset-0" id="backdrop-add-car"></div>
+  <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-6 relative z-10 shadow-2xl space-y-4 border-t-2 sm:border-2 border-slate-200">
+    <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+      <h3 id="modal-car-title" class="text-base font-black text-slate-800">Proposer un véhicule</h3>
+      <button class="btn-close-modal p-2 text-slate-400 hover:text-slate-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <form id="form-add-car" class="space-y-3">
+      <input type="hidden" id="input-edit-ride-id" value="">
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Conducteur</label>
+        <input type="text" id="input-car-driver" required placeholder="Ex: Julien" class="w-full px-3.5 py-3 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm font-semibold">
+      </div>
+
+      <div class="space-y-1.5 pt-1">
+        <label class="block text-xs font-bold text-slate-700 uppercase">Trajets assurés</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="flex items-center gap-2 p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
+            <input type="checkbox" id="check-offers-outward" checked class="w-4 h-4 text-blue-600 rounded">
+            <span class="text-xs font-black text-slate-800">Aller</span>
+          </label>
+          <label class="flex items-center gap-2 p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
+            <input type="checkbox" id="check-offers-return" checked class="w-4 h-4 text-blue-600 rounded">
+            <span class="text-xs font-black text-slate-800">Retour</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-1">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Places Aller</label>
+          <input type="number" id="input-car-seats-outward" min="0" max="8" value="2" required class="w-full px-3.5 py-3 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm font-bold">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Places Retour</label>
+          <input type="number" id="input-car-seats-return" min="0" max="8" value="1" required class="w-full px-3.5 py-3 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm font-bold">
+        </div>
+      </div>
+
+      <div class="p-3 bg-slate-50 rounded-xl border-2 border-slate-200">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" id="check-car-direct" class="w-4 h-4 text-blue-600 rounded">
+          <span class="text-xs font-bold text-slate-700">Je vais directement sur place (sans passer par le RDV)</span>
+        </label>
+      </div>
+
+      <div class="pt-2 flex gap-3">
+        <button type="button" class="btn-close-modal btn-tap w-1/3 py-3 px-4 rounded-xl border-2 border-slate-300 font-bold text-slate-700 text-xs">Annuler</button>
+        <button type="submit" id="btn-submit-add-car" class="btn-tap w-2/3 bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-4 rounded-xl shadow-md text-xs">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODALE BESOIN D'UNE PLACE -->
+<div id="modal-waiting" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="modal-backdrop fixed inset-0" id="backdrop-waiting"></div>
+  <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-6 relative z-10 shadow-2xl space-y-4 border-t-2 sm:border-2 border-slate-200">
+    <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+      <h3 class="text-base font-black text-slate-800">Recherche d'une place</h3>
+      <button class="btn-close-modal p-2 text-slate-400 hover:text-slate-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <form id="form-waiting" class="space-y-3">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Votre Prénom</label>
+        <input type="text" id="input-waiting-name" required placeholder="Ex: Romain" class="w-full px-3.5 py-3 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-amber-500 text-sm font-semibold">
+      </div>
+
+      <div class="space-y-1.5 pt-1">
+        <label class="block text-xs font-bold text-slate-700 uppercase">Transport souhaité pour :</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="flex items-center gap-2 p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
+            <input type="checkbox" id="check-wait-outward" checked class="w-4 h-4 text-amber-600 rounded">
+            <span class="text-xs font-black text-slate-800">L'Aller</span>
+          </label>
+          <label class="flex items-center gap-2 p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
+            <input type="checkbox" id="check-wait-return" checked class="w-4 h-4 text-amber-600 rounded">
+            <span class="text-xs font-black text-slate-800">Le Retour</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="pt-2 flex gap-3">
+        <button type="button" class="btn-close-modal btn-tap w-1/3 py-3 px-4 rounded-xl border-2 border-slate-300 font-bold text-slate-700 text-xs">Annuler</button>
+        <button type="submit" id="btn-submit-waiting" class="btn-tap w-2/3 bg-amber-500 hover:bg-amber-600 text-white font-black py-3 px-4 rounded-xl shadow-md text-xs">Valider</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,100 @@
+<!-- Vue Tableau de bord Administrateur -->
+<div id="view-admin" class="hidden space-y-4">
+  
+  <!-- En-tête Admin -->
+  <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+    <div class="flex items-center justify-between">
+      <div>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+          Espace Coach / Responsable
+        </span>
+        <h1 class="text-xl font-black text-slate-800 mt-1">Gestion des Rencontres</h1>
+      </div>
+      <button id="btn-admin-refresh" class="btn-tap p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700" title="Actualiser">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Bouton Créer un match -->
+    <button id="btn-open-create-match" class="btn-tap w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm shadow-blue-200">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      <span>Créer un nouveau match</span>
+    </button>
+  </div>
+
+  <!-- Liste des matchs -->
+  <div class="space-y-3" id="admin-matches-list">
+    <!-- Injecté dynamiquement par ClientJS.html -->
+  </div>
+
+</div>
+
+<!-- MODALE CRÉER UN MATCH -->
+<div id="modal-create-match" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="modal-backdrop fixed inset-0" id="backdrop-create-match"></div>
+  <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-6 relative z-10 shadow-2xl border border-slate-100 space-y-4">
+    <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+      <h3 class="text-lg font-bold text-slate-800">Nouveau Match à l'extérieur</h3>
+      <button class="btn-close-modal p-2 text-slate-400 hover:text-slate-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <form id="form-create-match" class="space-y-3">
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Intitulé du Match</label>
+        <input type="text" id="input-match-title" required placeholder="Ex: Déplacement vs US Créteil" class="w-full px-3.5 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Date</label>
+          <input type="date" id="input-match-date" required class="w-full px-3.5 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Heure de RDV</label>
+          <input type="time" id="input-match-time" required class="w-full px-3.5 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Lieu de RDV (Départ)</label>
+        <input type="text" id="input-match-place" required placeholder="Ex: Parking du Gymnase Municipal" class="w-full px-3.5 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm">
+      </div>
+
+      <div class="pt-2 flex gap-3">
+        <button type="button" class="btn-close-modal btn-tap w-1/3 py-3 px-4 rounded-xl border border-slate-300 font-semibold text-slate-700">Annuler</button>
+        <button type="submit" id="btn-submit-create-match" class="btn-tap w-2/3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODALE EXPORT WHATSAPP -->
+<div id="modal-whatsapp" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="modal-backdrop fixed inset-0" id="backdrop-whatsapp"></div>
+  <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-6 relative z-10 shadow-2xl space-y-4">
+    <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">📱</span>
+        <h3 class="text-lg font-bold text-slate-800">Synthèse WhatsApp</h3>
+      </div>
+      <button class="btn-close-modal p-2 text-slate-400 hover:text-slate-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <textarea id="textarea-whatsapp" readonly class="w-full h-56 p-3 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none resize-none"></textarea>
+
+    <button id="btn-copy-whatsapp" class="btn-tap w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+      </svg>
+      <span>Copier dans le presse-papier</span>
+    </button>
+  </div>
+</div>
