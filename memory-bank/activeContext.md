@@ -18,7 +18,9 @@ Migration complète et réussie de l'application Co'Voit' vers une **architectur
   - **Tableau de bord visuel enrichi** :
     - Suppression de la carte doublon "Je m'y rends seul" en haut.
     - Colonnes Aller (bleu) et Retour (orange) clarifiées : total de personnes partant au RDV, sous-détail précis sans surcharge (`• Conducteurs : X` et `• Places dispo : X`), badge de solde dynamique (`+X libre`, `Complet (0)`, `Manque X`), et total des personnes se rendant directement sur place.
-  - **Architecture & Règles GEMINI** : tous les modules JavaScript sont strictement `< 300` lignes (`js/app.js`: 296, `js/ui-match-summary.js`: 242, `js/ui-match-render.js`: 204).
+    - **Calcul fidèle au sondage brut** : comptage indépendant de l'assignation dans les voitures (Sets dédupliqués de conducteurs RDV + demandeurs liste d'attente/passagers) permettant un bilan 100% exact même si personne n'est encore monté dans une voiture spécifique.
+    - **Inversion de l'enregistrement de l'inscription partielle** : `ctrlRegisterVehicle` puis `ctrlJoinWaitingList` pour préserver l'inscription en attente.
+  - **Architecture & Règles GEMINI** : tous les modules JavaScript sont strictement `< 300` lignes (`js/app.js`: 296, `js/ui-match-summary.js`: 240, `js/ui-match-render.js`: 204).
 
 ## Documentation
 - `README.md` disponible à la racine du projet pour guider le coach et les développeurs.
