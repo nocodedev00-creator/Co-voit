@@ -12,6 +12,14 @@ Migration complète et réussie de l'application Co'Voit' vers une **architectur
   - `js/app.js` & `js/ui-admin.js` : `setButtonLoading` (désactivation immédiate + spinner + texte de chargement) sur tous les formulaires (création de match, véhicule, trajet direct, liste d'attente, actions admin).
   - `Database.gs` : mise en cache `CacheService` des structures de tables, token admin et vérifications d'en-têtes pour éliminer ~15 requêtes RPC Google Sheets redondantes par appel (gain de latence de ~70%).
 - **Écran d'accueil interactif** : ajout d'un champ de connexion Coach pour entrer son `ADMIN_TOKEN` en un clic sans paramètre d'URL.
+- **Refonte UI & Expérience Match (Demande Utilisateur)** :
+  - **Repositionnement des actions** : bloc `#match-actions-container` et bandeau verrouillé déplacés directement sous la fiche logistique du match (avant le bilan et les voitures).
+  - **Règle automatique "Je cherche"** : si un joueur s'inscrit en attente sur l'Aller seul, son Retour est automatiquement enregistré en "Je m'y rends seul" (direct sur place), et inversement. S'il coche les deux, il est en recherche A/R.
+  - **Tableau de bord visuel enrichi** :
+    - Suppression de la carte doublon "Je m'y rends seul" en haut.
+    - Colonnes Aller (bleu) et Retour (orange) clarifiées : total de personnes partant au RDV, sous-détail des places (offertes vs demandées) avec badge de solde dynamique (`+X libre`, `Complet (0)`, `Manque X`), et total des personnes se rendant directement sur place sans passer par le RDV.
+  - **Architecture & Règles GEMINI** : tous les modules JavaScript sont strictement `< 300` lignes (`js/app.js`: 295, `js/ui-match-summary.js`: 248, `js/ui-match-render.js`: 204).
 
 ## Documentation
 - `README.md` disponible à la racine du projet pour guider le coach et les développeurs.
+

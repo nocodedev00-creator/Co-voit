@@ -13,3 +13,7 @@ L'application Co'Voit' tourne désormais sur une architecture découplée GitHub
 - ✅ **API Google Apps Script** (`Code.gs`) : `doPost(e)` / `doGet(e)` répondant en JSON pur via `ContentService`.
 - ✅ **Métier & Persistance** (`Controllers.gs`, `Database.gs`, `Utils.gs`) : Google Sheets synchronisé en direct.
 - ✅ **Documentation** : `README.md` complet d'administration et d'utilisation rédigé à la racine.
+- ✅ **Actions repositionnées sous la fiche logistique** : accès direct à "Je conduis", "Je cherche", "Direct sur place".
+- ✅ **Règle "Je cherche" automatique** : inscription Aller seul => Retour en direct automatique, et inversement.
+- ✅ **Bilan A/R haute visibilité** : répartition claire au RDV (total personnes, places offertes vs demandées, badge solde) vs Direct sur place, carte doublon supprimée.
+
