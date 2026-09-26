@@ -20,7 +20,8 @@ Migration complète et réussie de l'application Co'Voit' vers une **architectur
     - Colonnes Aller (bleu) et Retour (orange) clarifiées : total de personnes partant au RDV, sous-détail précis sans surcharge (`• Conducteurs : X` et `• Places dispo : X`), badge de solde dynamique (`+X libre`, `Complet (0)`, `Manque X`), et total des personnes se rendant directement sur place.
     - **Calcul fidèle au sondage brut** : comptage indépendant de l'assignation dans les voitures (Sets dédupliqués de conducteurs RDV + demandeurs liste d'attente/passagers) permettant un bilan 100% exact même si personne n'est encore monté dans une voiture spécifique.
     - **Inversion de l'enregistrement de l'inscription partielle** : `ctrlRegisterVehicle` puis `ctrlJoinWaitingList` pour préserver l'inscription en attente.
-  - **Architecture & Règles GEMINI** : tous les modules JavaScript sont strictement `< 300` lignes (`js/app.js`: 296, `js/ui-match-summary.js`: 240, `js/ui-match-render.js`: 204).
+    - **Verrouillage strict de réservation de voiture par trajet** : si un joueur cherche uniquement pour l'Aller (ou est direct au Retour), le bouton "+ Monter" du Retour est désactivé avec badge explicatif `🚫 Recherche Aller uniquement` et bloqué côté front et serveur (et inversement).
+  - **Architecture & Règles GEMINI** : tous les modules JavaScript sont strictement `< 300` lignes (`js/app.js`: 296, `js/ui-match-summary.js`: 244, `js/ui-match-render.js`: 204, `js/ui-match-cards.js`: 215, `js/ui-match-actions.js`: 119).
 
 ## Documentation
 - `README.md` disponible à la racine du projet pour guider le coach et les développeurs.
