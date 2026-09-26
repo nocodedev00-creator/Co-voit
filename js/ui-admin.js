@@ -103,34 +103,44 @@ function renderAdminMatches(matches) {
       window.open(buildAppUrl({ m: m.id }), '_blank');
     };
 
-    card.querySelector('.btn-match-lock').onclick = async () => {
+    const btnLock = card.querySelector('.btn-match-lock');
+    btnLock.onclick = async () => {
+      setButtonLoading(btnLock, true);
       try {
         await callServer('ctrlToggleMatchLock', AppState.adminToken, m.id, !m.is_locked);
         showToast(m.is_locked ? 'Match déverrouillé' : 'Match verrouillé', 'success');
         loadAdminDashboard();
       } catch (err) {
         showToast(err.message, 'error');
+        setButtonLoading(btnLock, false);
       }
     };
 
-    card.querySelector('.btn-match-share').onclick = async () => {
+    const btnShare = card.querySelector('.btn-match-share');
+    btnShare.onclick = async () => {
+      setButtonLoading(btnShare, true);
       try {
         const summary = await callServer('ctrlGetWhatsAppSummary', AppState.adminToken, m.id, AppState.webAppUrl, '');
         document.getElementById('textarea-whatsapp').value = summary;
         openModal('modal-whatsapp');
       } catch (err) {
         showToast(err.message, 'error');
+      } finally {
+        setButtonLoading(btnShare, false);
       }
     };
 
-    card.querySelector('.btn-match-delete').onclick = async () => {
+    const btnDelete = card.querySelector('.btn-match-delete');
+    btnDelete.onclick = async () => {
       if (!confirm(`Supprimer définitivement "${m.title}" et toutes ses inscriptions ?`)) return;
+      setButtonLoading(btnDelete, true);
       try {
         await callServer('ctrlDeleteMatch', AppState.adminToken, m.id);
         showToast('Match supprimé.', 'info');
         loadAdminDashboard();
       } catch (err) {
         showToast(err.message, 'error');
+        setButtonLoading(btnDelete, false);
       }
     };
 

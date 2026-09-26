@@ -29,6 +29,10 @@ function getSpreadsheet() {
  * Vérifie et ajoute les colonnes manquantes dans une feuille existante (Auto-migration).
  */
 function syncSheetHeaders(sheetName, expectedHeaders) {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'SYNCED_' + sheetName;
+  if (cache.get(cacheKey) === 'true') return;
+
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName(sheetName);
   if (!sheet || sheet.getLastRow() === 0) return;
@@ -41,9 +45,13 @@ function syncSheetHeaders(sheetName, expectedHeaders) {
       currentHeaders.push(h);
     }
   });
+  cache.put(cacheKey, 'true', 21600);
 }
 
 function initDatabase() {
+  const cache = CacheService.getScriptCache();
+  if (cache.get('DB_INIT') === 'true') return;
+
   const ss = getSpreadsheet();
 
   Object.keys(DB_SCHEMA).forEach(tableKey => {
@@ -70,9 +78,14 @@ function initDatabase() {
     const generatedToken = (Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10)).toUpperCase();
     setConfigValue('ADMIN_TOKEN', generatedToken);
   }
+  cache.put('DB_INIT', 'true', 21600);
 }
 
 function getConfigValue(key) {
+  const cache = CacheService.getScriptCache();
+  const cachedVal = cache.get('CFG_' + key);
+  if (cachedVal !== null) return cachedVal;
+
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName(DB_SCHEMA.CONFIG.sheetName);
   if (!sheet || sheet.getLastRow() <= 1) return null;
@@ -80,13 +93,18 @@ function getConfigValue(key) {
   const data = sheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
     if (String(data[i][0]) === String(key)) {
-      return String(data[i][1]);
+      const val = String(data[i][1]);
+      cache.put('CFG_' + key, val, 21600);
+      return val;
     }
   }
   return null;
 }
 
 function setConfigValue(key, value) {
+  const cache = CacheService.getScriptCache();
+  cache.put('CFG_' + key, String(value), 21600);
+
   const ss = getSpreadsheet();
   let sheet = ss.getSheetByName(DB_SCHEMA.CONFIG.sheetName);
   if (!sheet) {

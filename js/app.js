@@ -47,55 +47,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- MODALE IDENTITÉ DU JOUEUR ---
   const btnIdentityConfirm = document.getElementById('btn-identity-confirm');
-  if (btnIdentityConfirm) {
-    btnIdentityConfirm.onclick = () => {
-      closeModal('modal-identity');
-      loadMatchDetails();
-    };
-  }
+  if (btnIdentityConfirm) btnIdentityConfirm.onclick = () => { closeModal('modal-identity'); loadMatchDetails(); };
 
   const btnIdentityChange = document.getElementById('btn-identity-change');
-  if (btnIdentityChange) {
-    btnIdentityChange.onclick = () => {
-      document.getElementById('identity-known-block').classList.add('hidden');
-      document.getElementById('identity-unknown-block').classList.remove('hidden');
-    };
-  }
+  if (btnIdentityChange) btnIdentityChange.onclick = () => {
+    document.getElementById('identity-known-block').classList.add('hidden');
+    document.getElementById('identity-unknown-block').classList.remove('hidden');
+  };
 
   const formIdentity = document.getElementById('form-identity');
-  if (formIdentity) {
-    formIdentity.onsubmit = (e) => {
-      e.preventDefault();
-      const inputName = document.getElementById('input-identity-name').value.trim();
-      if (inputName) {
-        setUsername(inputName);
-        closeModal('modal-identity');
-        showToast(`Bienvenue, ${inputName} !`, 'success');
-        loadMatchDetails();
-      }
-    };
-  }
+  if (formIdentity) formIdentity.onsubmit = (e) => {
+    e.preventDefault();
+    const inputName = document.getElementById('input-identity-name').value.trim();
+    if (inputName) {
+      setUsername(inputName);
+      closeModal('modal-identity');
+      showToast(`Bienvenue, ${inputName} !`, 'success');
+      loadMatchDetails();
+    }
+  };
 
-  // Fermeture des modales
+  // Fermeture des modales & actualisations
   document.querySelectorAll('.btn-close-modal').forEach(btn => {
     btn.onclick = () => ['modal-create-match','modal-whatsapp','modal-add-car','modal-waiting','modal-summary-details'].forEach(closeModal);
   });
 
-  // Boutons d'actualisation
   const btnAdminRefresh = document.getElementById('btn-admin-refresh');
   if (btnAdminRefresh) btnAdminRefresh.onclick = loadAdminDashboard;
   const btnPlayerRefresh = document.getElementById('btn-player-refresh');
   if (btnPlayerRefresh) btnPlayerRefresh.onclick = loadMatchDetails;
 
   const btnChangeUser = document.getElementById('btn-change-username');
-  if (btnChangeUser) {
-    btnChangeUser.onclick = () => {
-      document.getElementById('input-identity-name').value = AppState.currentUser || '';
-      document.getElementById('identity-known-block').classList.add('hidden');
-      document.getElementById('identity-unknown-block').classList.remove('hidden');
-      openModal('modal-identity');
-    };
-  }
+  if (btnChangeUser) btnChangeUser.onclick = () => {
+    document.getElementById('input-identity-name').value = AppState.currentUser || '';
+    document.getElementById('identity-known-block').classList.add('hidden');
+    document.getElementById('identity-unknown-block').classList.remove('hidden');
+    openModal('modal-identity');
+  };
 
   // --- GESTION ADMIN : CRÉER UN MATCH ---
   const btnOpenCreate = document.getElementById('btn-open-create-match');
@@ -110,6 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (formCreateMatch) {
     formCreateMatch.onsubmit = async (e) => {
       e.preventDefault();
+      const btnSubmit = document.getElementById('btn-submit-create-match');
+      if (btnSubmit && btnSubmit.disabled) return;
+      setButtonLoading(btnSubmit, true, 'Création...');
+
       const payload = {
         title: document.getElementById('input-match-title').value,
         event_date: document.getElementById('input-match-date').value,
@@ -124,6 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadAdminDashboard();
       } catch (err) {
         showToast(err.message, 'error');
+      } finally {
+        setButtonLoading(btnSubmit, false);
       }
     };
   }
@@ -170,13 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnQuickDirect = document.getElementById('btn-quick-direct');
   if (btnQuickDirect) {
     btnQuickDirect.onclick = async () => {
-      if (!AppState.currentUser) {
-        checkUserIdentityFlow('Indique ton prénom pour signaler ton trajet direct.');
-        return;
-      }
-      if (!confirm('Confirmer que vous allez directement au match par vos propres moyens (sans passer par le covoiturage) ?')) {
-        return;
-      }
+      if (!AppState.currentUser) return checkUserIdentityFlow('Indique ton prénom pour signaler ton trajet direct.');
+      if (btnQuickDirect.disabled) return;
+      if (!confirm('Confirmer que vous allez directement au match par vos propres moyens (sans passer par le covoiturage) ?')) return;
+
+      setButtonLoading(btnQuickDirect, true, 'Enregistrement...');
       const payload = {
         driver_name: AppState.currentUser,
         offers_outward: true,
@@ -191,6 +183,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadMatchDetails();
       } catch (err) {
         showToast(err.message, 'error');
+      } finally {
+        setButtonLoading(btnQuickDirect, false);
       }
     };
   }
@@ -200,6 +194,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (formAddCar) {
     formAddCar.onsubmit = async (e) => {
       e.preventDefault();
+      const btnSubmit = document.getElementById('btn-submit-add-car');
+      if (btnSubmit && btnSubmit.disabled) return;
+
       const editId = document.getElementById('input-edit-ride-id').value;
       const driverName = document.getElementById('input-car-driver').value.trim();
       if (!driverName) return;
@@ -218,6 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast("Cochez au moins l'aller ou le retour.", 'error');
         return;
       }
+
+      setButtonLoading(btnSubmit, true, 'Enregistrement...');
       try {
         if (editId) {
           await callServer('ctrlUpdateVehicle', AppState.matchId, editId, driverName, payload);
@@ -230,6 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadMatchDetails();
       } catch (err) {
         showToast(err.message, 'error');
+      } finally {
+        setButtonLoading(btnSubmit, false);
       }
     };
   }
@@ -238,10 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnOpenWaiting = document.getElementById('btn-open-waiting-list');
   if (btnOpenWaiting) {
     btnOpenWaiting.onclick = () => {
-      if (!AppState.currentUser) {
-        checkUserIdentityFlow("Indique ton prénom pour t'inscrire en liste d'attente.");
-        return;
-      }
+      if (!AppState.currentUser) return checkUserIdentityFlow("Indique ton prénom pour t'inscrire en liste d'attente.");
       document.getElementById('input-waiting-name').value = AppState.currentUser || '';
       openModal('modal-waiting');
     };
@@ -251,6 +249,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (formWaiting) {
     formWaiting.onsubmit = async (e) => {
       e.preventDefault();
+      const btnSubmit = document.getElementById('btn-submit-waiting');
+      if (btnSubmit && btnSubmit.disabled) return;
+
       const pName = document.getElementById('input-waiting-name').value.trim();
       if (!pName) return;
       setUsername(pName);
@@ -263,6 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      setButtonLoading(btnSubmit, true, 'Inscription...');
       try {
         await callServer('ctrlJoinWaitingList', AppState.matchId, pName, needsOut, needsRet);
         showToast("Inscription en liste d'attente validée.", 'success');
@@ -270,6 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadMatchDetails();
       } catch (err) {
         showToast(err.message, 'error');
+      } finally {
+        setButtonLoading(btnSubmit, false);
       }
     };
   }
@@ -279,19 +283,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnCopyWhatsApp) {
     btnCopyWhatsApp.onclick = () => {
       const textarea = document.getElementById('textarea-whatsapp');
-      const text = textarea.value;
+      const text = textarea ? textarea.value : '';
+      const onCopied = () => showToast('Synthèse copiée dans le presse-papier !', 'success');
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => {
-          showToast('Synthèse copiée dans le presse-papier !', 'success');
-        }).catch(() => {
-          textarea.select();
-          document.execCommand('copy');
-          showToast('Synthèse copiée dans le presse-papier !', 'success');
-        });
+        navigator.clipboard.writeText(text).then(onCopied).catch(() => { textarea?.select(); document.execCommand('copy'); onCopied(); });
       } else {
-        textarea.select();
-        document.execCommand('copy');
-        showToast('Synthèse copiée dans le presse-papier !', 'success');
+        textarea?.select(); document.execCommand('copy'); onCopied();
       }
     };
   }
