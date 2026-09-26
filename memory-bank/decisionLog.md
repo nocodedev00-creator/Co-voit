@@ -111,7 +111,12 @@ Ce document trace l'historique des problèmes techniques complexes et les soluti
 - Les segments ALLER et RETOUR d'une carte véhicule sont affichés **côte à côte** (Aller à gauche, Retour à droite), alignés sur le layout du bloc "Bilan des places".
 - L'en-tête (avatar + nom conducteur + badge Direct + bouton supprimer) reste **pleine largeur** au-dessus.
 - **Implémentation robuste** : conteneur `style="display:flex; flex-direction:row; gap:0.75rem; align-items:stretch;"` + chaque segment `style="flex:1 1 0; min-width:0;"`. On n'utilise **pas** `grid-cols-2` de Tailwind pour ce bloc, afin d'éviter tout risque de purge/JIT ou de cache. Le côte-à-côte est garanti par CSS inline.
-- Compteurs passagers raccourcis (`X / Y`) pour tenir dans une demi-largeur.
+## 2026-09-26 : Migration découplée GitHub Pages + API Apps Script & Fix heure 00:09
+- **Problème** : Conflits multi-comptes Google sur mobile & webviews WhatsApp bloquaient l'accès à la Web App ("Impossible d'ouvrir le fichier").
+- **Solution** : Architecture découplée. Front-end statique hébergé sur GitHub Pages (accès public immédiat sans compte Google), Backend Apps Script converti en API REST JSON (`doPost`/`doGet` avec `ContentService`).
+- **Fix Heure 00:09** : Google Sheets stockait les heures en objets Date fixés au 30/12/1899 (entraînant 00:09 avec le fuseau de Paris en 1899). Résolu par extraction explicite de `HH:mm` dans `Database.gs`, `Utils.gs` et `js/ui-utils.js`.
+- **Accueil** : Ajout du formulaire de saisie `ADMIN_TOKEN` sur la page d'accueil pour accès Coach direct sans devoir modifier l'URL.
+
 
 
 
