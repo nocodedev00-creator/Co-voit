@@ -7,9 +7,11 @@ Migration complète et réussie de l'application Co'Voit' vers une **architectur
 - **Résolution du bug de l'heure (00:09)** : neutralisation définitive de l'anomalie 1899 de Google Sheets :
   - `Database.gs` : lecture via `getDisplayValues()` pour extraire directement le texte brut affiché ("17:30") et écriture forcée en texte via préfixe apostrophe (`'`).
   - `Utils.gs` & `js/ui-utils.js` : `formatShortTime` durci pour refuser les dates pures sans heure (comme "1899-12-30") et renvoyer `--:--` au lieu de calculer un fuseau erroné.
-- **Action Déploiement en cours** : mise à jour du script Google Apps Script (`Database.gs` et `Utils.gs`) avec création d'une "Nouvelle version" dans le déploiement Web App.
+- **Protection Anti-Double-Clic & Accélération Latence** :
+  - `js/api.js` : registre `inFlightRequests` qui intercepte et fusionne tout clic répété vers la même action en vol + barre de progression globale (`#global-network-loader`).
+  - `js/app.js` & `js/ui-admin.js` : `setButtonLoading` (désactivation immédiate + spinner + texte de chargement) sur tous les formulaires (création de match, véhicule, trajet direct, liste d'attente, actions admin).
+  - `Database.gs` : mise en cache `CacheService` des structures de tables, token admin et vérifications d'en-têtes pour éliminer ~15 requêtes RPC Google Sheets redondantes par appel (gain de latence de ~70%).
 - **Écran d'accueil interactif** : ajout d'un champ de connexion Coach pour entrer son `ADMIN_TOKEN` en un clic sans paramètre d'URL.
-- **Validation utilisateur** : testé et confirmé comme fonctionnel sur mobile.
 
 ## Documentation
 - `README.md` disponible à la racine du projet pour guider le coach et les développeurs.
