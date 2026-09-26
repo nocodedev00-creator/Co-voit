@@ -42,6 +42,23 @@ async function handleJoinRide(rideId, direction, btn) {
 
   setButtonLoading(btn, true, 'Inscription...');
   try {
+    const myDirect = (AppState.currentMatchData?.rides || []).find(r => safeLower(r.driver_name) === safeLower(AppState.currentUser) && r.is_direct);
+    if (myDirect) {
+      if (direction === 'outward' && myDirect.offers_outward) {
+        if (!myDirect.offers_return) {
+          try { await callServer('ctrlDeleteVehicle', AppState.matchId, myDirect.id, AppState.currentUser, AppState.adminToken); } catch(e){}
+        } else {
+          try { await callServer('ctrlUpdateVehicle', AppState.matchId, myDirect.id, AppState.currentUser, { ...myDirect, offers_outward: false, adminToken: AppState.adminToken }); } catch(e){}
+        }
+      } else if (direction === 'return' && myDirect.offers_return) {
+        if (!myDirect.offers_outward) {
+          try { await callServer('ctrlDeleteVehicle', AppState.matchId, myDirect.id, AppState.currentUser, AppState.adminToken); } catch(e){}
+        } else {
+          try { await callServer('ctrlUpdateVehicle', AppState.matchId, myDirect.id, AppState.currentUser, { ...myDirect, offers_return: false, adminToken: AppState.adminToken }); } catch(e){}
+        }
+      }
+    }
+
     await callServer('ctrlJoinRide', AppState.matchId, rideId, AppState.currentUser, direction);
     showToast('Vous avez rejoint le véhicule !', 'success');
     loadMatchDetails();

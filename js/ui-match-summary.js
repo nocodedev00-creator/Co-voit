@@ -82,6 +82,10 @@ function calculateAndRenderSummary(rides, waiting) {
   const soldeOutward = outwardSeats - outwardDemands;
   const soldeReturn = returnSeats - returnDemands;
 
+  // Sécurité : une personne partant au RDV n'est jamais comptée en direct pour ce trajet
+  outwardRdvPeople.forEach(name => outwardDirectParticipants.delete(name));
+  returnRdvPeople.forEach(name => returnDirectParticipants.delete(name));
+
   const outwardDirectTotal = outwardDirectParticipants.size;
   const returnDirectTotal = returnDirectParticipants.size;
 
