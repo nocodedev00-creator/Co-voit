@@ -142,3 +142,4 @@ Co-voit/
 ├── Database.gs              # Couche d'accès aux données Google Sheets
 └── Utils.gs                 # Formatage des dates et messages WhatsApp
 ```
+

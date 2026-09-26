@@ -20,7 +20,18 @@ function formatShortDate(dateStr) {
 function formatShortTime(timeStr) {
   if (!timeStr && timeStr !== 0) return '--:--';
 
+  if (timeStr instanceof Date && !isNaN(timeStr.getTime())) {
+    const hh = String(timeStr.getHours()).padStart(2, '0');
+    const mm = String(timeStr.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
   const str = String(timeStr).trim();
+
+  // Si c'est une date pure sans heure (ex: "1899-12-30"), renvoyer indéterminé
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    return '--:--';
+  }
 
   // Cas 1 : Chaîne "HH:MM", "HHhMM" ou "HH:MM:SS"
   const match = str.match(/(\d{1,2})[:hH](\d{2})/);
@@ -28,21 +39,13 @@ function formatShortTime(timeStr) {
     return `${match[1].padStart(2, '0')}:${match[2]}`;
   }
 
-  // Cas 2 : Chaîne ISO avec "T" (ex: 1899-12-30T17:30:00)
+  // Cas 2 : Chaîne ISO avec "T" (ex: 2026-09-26T17:30:00)
   if (str.includes('T')) {
     const timePart = str.split('T')[1];
     const timeMatch = timePart.match(/^(\d{1,2}):(\d{2})/);
     if (timeMatch) {
       return `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
     }
-  }
-
-  // Cas 3 : Objet Date
-  const d = new Date(timeStr);
-  if (!isNaN(d.getTime())) {
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mm = String(d.getMinutes()).padStart(2, '0');
-    return `${hh}:${mm}`;
   }
 
   return str;

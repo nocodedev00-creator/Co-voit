@@ -112,22 +112,36 @@ function getTableRecords(sheetName) {
   syncSheetHeaders(sheetName, DB_SCHEMA[sheetName].headers);
 
   const values = sheet.getDataRange().getValues();
+  const displayValues = sheet.getDataRange().getDisplayValues();
   const headers = values[0];
   const records = [];
 
   for (let r = 1; r < values.length; r++) {
     const row = values[r];
+    const displayRow = displayValues[r];
     const record = {};
     for (let c = 0; c < headers.length; c++) {
       let val = row[c];
       const header = headers[c];
 
-      if (val instanceof Date) {
-        if (header === 'departure_time') {
+      if (header === 'departure_time') {
+        const disp = displayRow ? String(displayRow[c] || '').trim() : '';
+        const matchDisp = disp.match(/(\d{1,2})[:hH](\d{2})/);
+        const matchVal = (typeof val === 'string') ? val.match(/(\d{1,2})[:hH](\d{2})/) : null;
+
+        if (matchDisp) {
+          val = `${matchDisp[1].padStart(2, '0')}:${matchDisp[2]}`;
+        } else if (matchVal) {
+          val = `${matchVal[1].padStart(2, '0')}:${matchVal[2]}`;
+        } else if (val instanceof Date) {
           const hh = String(val.getHours()).padStart(2, '0');
           const mm = String(val.getMinutes()).padStart(2, '0');
           val = `${hh}:${mm}`;
-        } else if (header === 'created_at' || header === 'updated_at') {
+        } else {
+          val = disp || String(val || '');
+        }
+      } else if (val instanceof Date) {
+        if (header === 'created_at' || header === 'updated_at') {
           val = val.toISOString();
         } else {
           val = Utilities.formatDate(val, Session.getScriptTimeZone() || 'Europe/Paris', 'yyyy-MM-dd');
@@ -185,8 +199,9 @@ function insertRecord(sheetName, recordObj) {
     let val = recordObj[header];
     if (val === undefined || val === null) val = '';
     if (Array.isArray(val)) val = JSON.stringify(val);
-    if (header === 'departure_time' && typeof val === 'string' && val.trim() !== '' && !val.startsWith("'")) {
-      val = "'" + val;
+    if (header === 'departure_time' && typeof val === 'string' && val.trim() !== '') {
+      const timeMatch = val.match(/(\d{1,2})[:hH](\d{2})/);
+      val = timeMatch ? `'${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}` : (val.startsWith("'") ? val : "'" + val);
     }
     return val;
   });
@@ -216,8 +231,9 @@ function updateRecord(sheetName, id, updatesObj) {
         if (colIndex !== -1) {
           let val = updatesObj[key];
           if (Array.isArray(val)) val = JSON.stringify(val);
-          if (key === 'departure_time' && typeof val === 'string' && val.trim() !== '' && !val.startsWith("'")) {
-            val = "'" + val;
+          if (key === 'departure_time' && typeof val === 'string' && val.trim() !== '') {
+            const timeMatch = val.match(/(\d{1,2})[:hH](\d{2})/);
+            val = timeMatch ? `'${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}` : (val.startsWith("'") ? val : "'" + val);
           }
           sheet.getRange(rowIndex, colIndex + 1).setValue(val);
         }
