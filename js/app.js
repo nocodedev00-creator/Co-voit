@@ -259,17 +259,17 @@ document.addEventListener('DOMContentLoaded', () => {
       setButtonLoading(btnSubmit, true, 'Inscription...');
       try {
         if (needsOut && !needsRet) {
-          await callServer('ctrlJoinWaitingList', AppState.matchId, pName, true, false);
           await callServer('ctrlRegisterVehicle', AppState.matchId, { driver_name: pName, offers_outward: false, offers_return: true, seats_outward: 0, seats_return: 0, is_direct: true });
+          await callServer('ctrlJoinWaitingList', AppState.matchId, pName, true, false);
           showToast('Inscrit : Recherche Aller & Direct pour le Retour !', 'success');
         } else if (!needsOut && needsRet) {
-          await callServer('ctrlJoinWaitingList', AppState.matchId, pName, false, true);
           await callServer('ctrlRegisterVehicle', AppState.matchId, { driver_name: pName, offers_outward: true, offers_return: false, seats_outward: 0, seats_return: 0, is_direct: true });
+          await callServer('ctrlJoinWaitingList', AppState.matchId, pName, false, true);
           showToast('Inscrit : Direct pour l\'Aller & Recherche Retour !', 'success');
         } else {
-          await callServer('ctrlJoinWaitingList', AppState.matchId, pName, true, true);
           const myDirect = (AppState.currentMatchData?.rides || []).find(r => safeLower(r.driver_name) === safeLower(pName) && r.is_direct);
           if (myDirect) { try { await callServer('ctrlDeleteVehicle', AppState.matchId, myDirect.id, pName, AppState.adminToken); } catch(err){} }
+          await callServer('ctrlJoinWaitingList', AppState.matchId, pName, true, true);
           showToast("Inscription en liste d'attente validée.", 'success');
         }
         closeModal('modal-waiting');

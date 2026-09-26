@@ -8,15 +8,14 @@ function calculateAndRenderSummary(rides, waiting) {
 
   let outwardSeats = 0;
   let returnSeats = 0;
-  let outwardRdvPassengers = 0;
-  let returnRdvPassengers = 0;
-  let outwardRdvDrivers = 0;
-  let returnRdvDrivers = 0;
 
-  let outwardDirectDrivers = 0;
-  let returnDirectDrivers = 0;
-  let outwardDirectPassengers = 0;
-  let returnDirectPassengers = 0;
+  const outwardRdvDrivers = new Set();
+  const returnRdvDrivers = new Set();
+  const outwardRdvSeekers = new Set();
+  const returnRdvSeekers = new Set();
+
+  const outwardDirectParticipants = new Set();
+  const returnDirectParticipants = new Set();
 
   rides.forEach(r => {
     const dName = safeLower(r.driver_name);
@@ -32,62 +31,59 @@ function calculateAndRenderSummary(rides, waiting) {
     const outPass = Array.isArray(r.outward_passengers) ? r.outward_passengers : [];
     const retPass = Array.isArray(r.return_passengers) ? r.return_passengers : [];
 
-    outPass.forEach(p => {
-      const pLower = safeLower(p);
-      if (pLower) uniqueParticipants.add(pLower);
-    });
-
-    retPass.forEach(p => {
-      const pLower = safeLower(p);
-      if (pLower) uniqueParticipants.add(pLower);
-    });
+    outPass.forEach(p => { const pl = safeLower(p); if (pl) uniqueParticipants.add(pl); });
+    retPass.forEach(p => { const pl = safeLower(p); if (pl) uniqueParticipants.add(pl); });
 
     if (isDirect) {
       if (offersOut) {
-        outwardDirectDrivers++;
-        outwardDirectPassengers += outPass.length;
+        if (dName) outwardDirectParticipants.add(dName);
+        outPass.forEach(p => { const pl = safeLower(p); if (pl) outwardDirectParticipants.add(pl); });
       }
       if (offersRet) {
-        returnDirectDrivers++;
-        returnDirectPassengers += retPass.length;
+        if (dName) returnDirectParticipants.add(dName);
+        retPass.forEach(p => { const pl = safeLower(p); if (pl) returnDirectParticipants.add(pl); });
       }
     } else {
       if (offersOut) {
-        outwardRdvDrivers++;
+        if (dName) outwardRdvDrivers.add(dName);
         outwardSeats += sOut;
-        outwardRdvPassengers += outPass.length;
+        outPass.forEach(p => { const pl = safeLower(p); if (pl) outwardRdvSeekers.add(pl); });
       }
       if (offersRet) {
-        returnRdvDrivers++;
+        if (dName) returnRdvDrivers.add(dName);
         returnSeats += sRet;
-        returnRdvPassengers += retPass.length;
+        retPass.forEach(p => { const pl = safeLower(p); if (pl) returnRdvSeekers.add(pl); });
       }
     }
   });
 
-  let outwardWaiting = 0;
-  let returnWaiting = 0;
-
+  // Prise en compte de tous ceux qui ont répondu au sondage "Je cherche" (liste d'attente)
   waiting.forEach(w => {
     if (w && w.player_name) {
       const wLower = safeLower(w.player_name);
-      if (wLower) uniqueParticipants.add(wLower);
+      if (wLower) {
+        uniqueParticipants.add(wLower);
+        if (toBool(w.needs_outward)) outwardRdvSeekers.add(wLower);
+        if (toBool(w.needs_return)) returnRdvSeekers.add(wLower);
+      }
     }
-    if (toBool(w.needs_outward)) outwardWaiting++;
-    if (toBool(w.needs_return)) returnWaiting++;
   });
 
-  const outwardRdvTotal = outwardRdvDrivers + outwardRdvPassengers + outwardWaiting;
-  const returnRdvTotal = returnRdvDrivers + returnRdvPassengers + returnWaiting;
+  // Au RDV = tous les conducteurs au RDV + toutes les personnes cherchant/occupant une place au RDV
+  const outwardRdvPeople = new Set([...outwardRdvDrivers, ...outwardRdvSeekers]);
+  const returnRdvPeople = new Set([...returnRdvDrivers, ...returnRdvSeekers]);
 
-  const outwardDirectTotal = outwardDirectDrivers + outwardDirectPassengers;
-  const returnDirectTotal = returnDirectDrivers + returnDirectPassengers;
+  const outwardRdvTotal = outwardRdvPeople.size;
+  const returnRdvTotal = returnRdvPeople.size;
 
-  const outwardDemands = outwardRdvPassengers + outwardWaiting;
-  const returnDemands = returnRdvPassengers + returnWaiting;
+  const outwardDemands = outwardRdvSeekers.size;
+  const returnDemands = returnRdvSeekers.size;
 
   const soldeOutward = outwardSeats - outwardDemands;
   const soldeReturn = returnSeats - returnDemands;
+
+  const outwardDirectTotal = outwardDirectParticipants.size;
+  const returnDirectTotal = returnDirectParticipants.size;
 
   const totalRespEl = document.getElementById('stat-total-respondents');
   if (totalRespEl) totalRespEl.textContent = `${uniqueParticipants.size} joueur(s)`;
@@ -97,7 +93,7 @@ function calculateAndRenderSummary(rides, waiting) {
   if (elOutRdv) elOutRdv.textContent = `${outwardRdvTotal} pers.`;
 
   const elOutDrivers = document.getElementById('stat-outward-drivers-count');
-  if (elOutDrivers) elOutDrivers.textContent = outwardRdvDrivers;
+  if (elOutDrivers) elOutDrivers.textContent = outwardRdvDrivers.size;
 
   const elOutSeats = document.getElementById('stat-outward-seats-detail');
   if (elOutSeats) elOutSeats.textContent = outwardSeats;
@@ -110,7 +106,7 @@ function calculateAndRenderSummary(rides, waiting) {
   if (elRetRdv) elRetRdv.textContent = `${returnRdvTotal} pers.`;
 
   const elRetDrivers = document.getElementById('stat-return-drivers-count');
-  if (elRetDrivers) elRetDrivers.textContent = returnRdvDrivers;
+  if (elRetDrivers) elRetDrivers.textContent = returnRdvDrivers.size;
 
   const elRetSeats = document.getElementById('stat-return-seats-detail');
   if (elRetSeats) elRetSeats.textContent = returnSeats;
@@ -156,6 +152,7 @@ function openSummaryDetailsModal() {
 
   const rdvOutwardList = [];
   const directOutwardList = [];
+  const assignedOutward = new Set();
 
   rides.forEach(r => {
     const driver = r.driver_name;
@@ -165,22 +162,23 @@ function openSummaryDetailsModal() {
     if (r.offers_outward) {
       if (isDirect) {
         directOutwardList.push(`🚗 ${driver} ${seatsOut > 0 ? `(Voiture directe • ${seatsOut} pl.)` : '(Direct par ses moyens)'}`);
-        (r.outward_passengers || []).forEach(p => directOutwardList.push(`👤 ${p} (avec ${driver})`));
+        (r.outward_passengers || []).forEach(p => { directOutwardList.push(`👤 ${p} (avec ${driver})`); assignedOutward.add(safeLower(p)); });
       } else {
         rdvOutwardList.push(`🚗 ${driver} (Conducteur • ${seatsOut} pl.)`);
-        (r.outward_passengers || []).forEach(p => rdvOutwardList.push(`👤 ${p} (avec ${driver})`));
+        (r.outward_passengers || []).forEach(p => { rdvOutwardList.push(`👤 ${p} (avec ${driver})`); assignedOutward.add(safeLower(p)); });
       }
     }
   });
 
   waiting.forEach(w => {
-    if (w && w.needs_outward) {
+    if (w && w.needs_outward && !assignedOutward.has(safeLower(w.player_name))) {
       rdvOutwardList.push(`⚠️ ${w.player_name} (Sans place Aller)`);
     }
   });
 
   const rdvReturnList = [];
   const directReturnList = [];
+  const assignedReturn = new Set();
 
   rides.forEach(r => {
     const driver = r.driver_name;
@@ -190,16 +188,16 @@ function openSummaryDetailsModal() {
     if (r.offers_return) {
       if (isDirect) {
         directReturnList.push(`🚗 ${driver} ${seatsRet > 0 ? `(Voiture directe • ${seatsRet} pl.)` : '(Direct par ses moyens)'}`);
-        (r.return_passengers || []).forEach(p => directReturnList.push(`👤 ${p} (avec ${driver})`));
+        (r.return_passengers || []).forEach(p => { directReturnList.push(`👤 ${p} (avec ${driver})`); assignedReturn.add(safeLower(p)); });
       } else {
         rdvReturnList.push(`🚗 ${driver} (Conducteur • ${seatsRet} pl.)`);
-        (r.return_passengers || []).forEach(p => rdvReturnList.push(`👤 ${p} (avec ${driver})`));
+        (r.return_passengers || []).forEach(p => { rdvReturnList.push(`👤 ${p} (avec ${driver})`); assignedReturn.add(safeLower(p)); });
       }
     }
   });
 
   waiting.forEach(w => {
-    if (w && w.needs_return) {
+    if (w && w.needs_return && !assignedReturn.has(safeLower(w.player_name))) {
       rdvReturnList.push(`⚠️ ${w.player_name} (Sans place Retour)`);
     }
   });
