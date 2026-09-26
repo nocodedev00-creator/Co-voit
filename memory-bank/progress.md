@@ -16,7 +16,9 @@ L'application Co'Voit' tourne désormais sur une architecture découplée GitHub
 - ✅ **Actions repositionnées sous la fiche logistique** : accès direct à "Je conduis", "Je cherche", "Direct sur place".
 - ✅ **Règle "Je cherche" automatique** : inscription Aller seul => Retour en direct automatique, et inversement.
 - ✅ **Bilan A/R haute visibilité** : répartition claire au RDV (total personnes, places offertes vs demandées, badge solde) vs Direct sur place, carte doublon supprimée.
-- ✅ **Anti-cache & versioning des scripts** : balises meta no-cache et query strings `?v=20260926_3` pour garantir le rechargement immédiat sur smartphone.
+- ✅ **Anti-cache & versioning des scripts** : balises meta no-cache et query strings `?v=20260926_4` pour garantir le rechargement immédiat sur smartphone.
 - ✅ **Verrouillage de réservation sélective** : interdiction absolue de réserver une voiture sur le retour si on ne cherche que l'aller (et inversement) avec badge d'information `🚫` et double validation front/back.
+- ✅ **Masquage intelligent du conteneur d'actions** : `#match-actions-container` disparaît dès que le joueur a répondu (remplacé par sa carte de statut personnelle) et réapparaît s'il annule.
+- ✅ **Condition d'accès aux voitures** : impossible de cliquer sur "+ Monter" sans avoir d'abord cliqué sur "Je cherche" (liste d'attente).
 
 
