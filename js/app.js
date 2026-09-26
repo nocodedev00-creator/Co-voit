@@ -8,31 +8,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const loader = document.getElementById('view-loading');
   if (loader) loader.classList.add('hidden');
 
-  // Diagnostic : Vérifier si l'URL de l'API Apps Script est configurée
+  // Diagnostic API
   if (!APP_CONFIG.GOOGLE_API_URL || APP_CONFIG.GOOGLE_API_URL.includes('REMPLACEZ_PAR_VOTRE_ID')) {
-    const errBox = document.getElementById('view-init-error');
     const errMsg = document.getElementById('init-error-message');
-    if (errBox && errMsg) {
-      errMsg.innerHTML = "L'URL de votre Web App Google Apps Script n'est pas encore renseignée dans <code>js/config.js</code>. Veuillez y coller l'URL de déploiement (se terminant par /exec).";
-      errBox.classList.remove('hidden');
-    }
+    if (errMsg) errMsg.innerHTML = "L'URL de l'API Google Apps Script n'est pas encore renseignée dans <code>js/config.js</code>.";
+    document.getElementById('view-init-error')?.classList.remove('hidden');
   }
 
   // Aiguillage de la vue principale
   if (AppState.route === 'ADMIN') {
-    document.getElementById('view-admin').classList.remove('hidden');
+    document.getElementById('view-admin')?.classList.remove('hidden');
     loadAdminDashboard();
   } else if (AppState.route === 'MATCH') {
-    document.getElementById('view-match').classList.remove('hidden');
+    document.getElementById('view-match')?.classList.remove('hidden');
     loadMatchDetails();
   } else {
-    document.getElementById('view-no-access').classList.remove('hidden');
+    document.getElementById('view-no-access')?.classList.remove('hidden');
     const formLogin = document.getElementById('form-login-admin');
     if (formLogin) {
       formLogin.onsubmit = (e) => {
         e.preventDefault();
-        const input = document.getElementById('input-login-admin-token');
-        const token = input ? input.value.trim() : '';
+        const token = document.getElementById('input-login-admin-token')?.value.trim();
         if (token) window.location.href = `${window.location.origin}${window.location.pathname}?admin=${encodeURIComponent(token)}`;
       };
     }
@@ -89,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnOpenCreate = document.getElementById('btn-open-create-match');
   if (btnOpenCreate) {
     btnOpenCreate.onclick = () => {
-      document.getElementById('form-create-match').reset();
+      document.getElementById('form-create-match')?.reset();
       openModal('modal-create-match');
     };
   }
@@ -126,10 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnOpenAddCar = document.getElementById('btn-open-add-car');
   if (btnOpenAddCar) {
     btnOpenAddCar.onclick = () => {
-      if (!AppState.currentUser) {
-        checkUserIdentityFlow('Indique ton prénom pour proposer un véhicule.');
-        return;
-      }
+      if (!AppState.currentUser) return checkUserIdentityFlow('Indique ton prénom pour proposer un véhicule.');
       document.getElementById('modal-car-title').textContent = 'Proposer un véhicule';
       document.getElementById('input-edit-ride-id').value = '';
       document.getElementById('input-car-driver').value = AppState.currentUser || '';
@@ -137,11 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('input-car-seats-outward').value = '3';
       document.getElementById('input-car-seats-return').value = '3';
       document.getElementById('check-car-direct').checked = false;
-
-      const seatsOut = document.getElementById('input-car-seats-outward');
-      const seatsRet = document.getElementById('input-car-seats-return');
-      if (seatsRet) seatsRet.dataset.userTouched = 'false';
-      if (seatsOut) seatsOut.dataset.userTouched = 'false';
+      const sOut = document.getElementById('input-car-seats-outward');
+      const sRet = document.getElementById('input-car-seats-return');
+      if (sRet) sRet.dataset.userTouched = 'false';
+      if (sOut) sOut.dataset.userTouched = 'false';
       openModal('modal-add-car');
     };
   }
@@ -151,13 +143,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const seatsRetInput = document.getElementById('input-car-seats-return');
   if (seatsOutInput && seatsRetInput) {
     seatsOutInput.addEventListener('input', () => {
-      if (seatsRetInput.dataset.userTouched !== 'true') {
-        seatsRetInput.value = seatsOutInput.value;
-      }
+      if (seatsRetInput.dataset.userTouched !== 'true') seatsRetInput.value = seatsOutInput.value;
     });
-    seatsRetInput.addEventListener('input', () => {
-      seatsRetInput.dataset.userTouched = 'true';
-    });
+    seatsRetInput.addEventListener('input', () => { seatsRetInput.dataset.userTouched = 'true'; });
   }
 
   // --- JOUEUR : DIRECT SUR PLACE ---
@@ -169,14 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!confirm('Confirmer que vous allez directement au match par vos propres moyens (sans passer par le covoiturage) ?')) return;
 
       setButtonLoading(btnQuickDirect, true, 'Enregistrement...');
-      const payload = {
-        driver_name: AppState.currentUser,
-        offers_outward: true,
-        offers_return: true,
-        seats_outward: 0,
-        seats_return: 0,
-        is_direct: true
-      };
+      const payload = { driver_name: AppState.currentUser, offers_outward: true, offers_return: true, seats_outward: 0, seats_return: 0, is_direct: true };
       try {
         await callServer('ctrlRegisterVehicle', AppState.matchId, payload);
         showToast('Enregistré : Direct par vos propres moyens !', 'success');
@@ -211,20 +192,14 @@ document.addEventListener('DOMContentLoaded', () => {
         is_direct: document.getElementById('check-car-direct').checked,
         adminToken: AppState.adminToken
       };
-      if (!payload.offers_outward && !payload.offers_return) {
-        showToast("Cochez au moins l'aller ou le retour.", 'error');
-        return;
-      }
+      if (!payload.offers_outward && !payload.offers_return) return showToast("Cochez au moins l'aller ou le retour.", 'error');
 
       setButtonLoading(btnSubmit, true, 'Enregistrement...');
       try {
-        if (editId) {
-          await callServer('ctrlUpdateVehicle', AppState.matchId, editId, driverName, payload);
-          showToast('Véhicule mis à jour !', 'success');
-        } else {
-          await callServer('ctrlRegisterVehicle', AppState.matchId, payload);
-          showToast('Véhicule enregistré !', 'success');
-        }
+        const action = editId ? 'ctrlUpdateVehicle' : 'ctrlRegisterVehicle';
+        const args = editId ? [AppState.matchId, editId, driverName, payload] : [AppState.matchId, payload];
+        await callServer(action, ...args);
+        showToast(editId ? 'Véhicule mis à jour !' : 'Véhicule enregistré !', 'success');
         closeModal('modal-add-car');
         loadMatchDetails();
       } catch (err) {
@@ -236,11 +211,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- JOUEUR : LISTE D'ATTENTE ---
+  const chkWaitOut = document.getElementById('check-wait-outward');
+  const chkWaitRet = document.getElementById('check-wait-return');
+  const hintWaitEl = document.getElementById('waiting-rule-hint');
+  const updateWaitingHint = () => {
+    if (!hintWaitEl || !chkWaitOut || !chkWaitRet) return;
+    if (chkWaitOut.checked && chkWaitRet.checked) {
+      hintWaitEl.textContent = "ℹ️ Recherche d'une place pour l'Aller ET le Retour.";
+    } else if (chkWaitOut.checked) {
+      hintWaitEl.textContent = "ℹ️ Recherche Aller : le retour sera automatiquement noté comme 'Direct sur place' 📍";
+    } else if (chkWaitRet.checked) {
+      hintWaitEl.textContent = "ℹ️ Recherche Retour : l'aller sera automatiquement noté comme 'Direct sur place' 📍";
+    } else {
+      hintWaitEl.textContent = "⚠️ Veuillez cocher au moins un trajet.";
+    }
+  };
+  if (chkWaitOut && chkWaitRet) {
+    chkWaitOut.onchange = updateWaitingHint;
+    chkWaitRet.onchange = updateWaitingHint;
+  }
+
   const btnOpenWaiting = document.getElementById('btn-open-waiting-list');
   if (btnOpenWaiting) {
     btnOpenWaiting.onclick = () => {
       if (!AppState.currentUser) return checkUserIdentityFlow("Indique ton prénom pour t'inscrire en liste d'attente.");
       document.getElementById('input-waiting-name').value = AppState.currentUser || '';
+      updateWaitingHint();
       openModal('modal-waiting');
     };
   }
@@ -256,18 +252,26 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!pName) return;
       setUsername(pName);
 
-      const needsOut = document.getElementById('check-wait-outward').checked;
-      const needsRet = document.getElementById('check-wait-return').checked;
-
-      if (!needsOut && !needsRet) {
-        showToast('Sélectionnez au moins un trajet.', 'error');
-        return;
-      }
+      const needsOut = chkWaitOut ? chkWaitOut.checked : false;
+      const needsRet = chkWaitRet ? chkWaitRet.checked : false;
+      if (!needsOut && !needsRet) return showToast('Sélectionnez au moins un trajet.', 'error');
 
       setButtonLoading(btnSubmit, true, 'Inscription...');
       try {
-        await callServer('ctrlJoinWaitingList', AppState.matchId, pName, needsOut, needsRet);
-        showToast("Inscription en liste d'attente validée.", 'success');
+        if (needsOut && !needsRet) {
+          await callServer('ctrlJoinWaitingList', AppState.matchId, pName, true, false);
+          await callServer('ctrlRegisterVehicle', AppState.matchId, { driver_name: pName, offers_outward: false, offers_return: true, seats_outward: 0, seats_return: 0, is_direct: true });
+          showToast('Inscrit : Recherche Aller & Direct pour le Retour !', 'success');
+        } else if (!needsOut && needsRet) {
+          await callServer('ctrlJoinWaitingList', AppState.matchId, pName, false, true);
+          await callServer('ctrlRegisterVehicle', AppState.matchId, { driver_name: pName, offers_outward: true, offers_return: false, seats_outward: 0, seats_return: 0, is_direct: true });
+          showToast('Inscrit : Direct pour l\'Aller & Recherche Retour !', 'success');
+        } else {
+          await callServer('ctrlJoinWaitingList', AppState.matchId, pName, true, true);
+          const myDirect = (AppState.currentMatchData?.rides || []).find(r => safeLower(r.driver_name) === safeLower(pName) && r.is_direct);
+          if (myDirect) { try { await callServer('ctrlDeleteVehicle', AppState.matchId, myDirect.id, pName, AppState.adminToken); } catch(err){} }
+          showToast("Inscription en liste d'attente validée.", 'success');
+        }
         closeModal('modal-waiting');
         loadMatchDetails();
       } catch (err) {
@@ -285,12 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const textarea = document.getElementById('textarea-whatsapp');
       const text = textarea ? textarea.value : '';
       const onCopied = () => showToast('Synthèse copiée dans le presse-papier !', 'success');
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(onCopied).catch(() => { textarea?.select(); document.execCommand('copy'); onCopied(); });
-      } else {
-        textarea?.select(); document.execCommand('copy'); onCopied();
-      }
+      navigator.clipboard?.writeText ? navigator.clipboard.writeText(text).then(onCopied).catch(() => { textarea?.select(); document.execCommand('copy'); onCopied(); }) : (textarea?.select(), document.execCommand('copy'), onCopied());
     };
   }
 });
-

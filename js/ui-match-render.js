@@ -98,101 +98,106 @@ function renderUserCurrentStatus(rides, waiting, isLocked) {
 
   const myName = safeLower(AppState.currentUser);
   actionsEl.innerHTML = '';
+  const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
 
-  // Cas 1 : Conducteur
+  // Recherche des participations
   const myRide = rides.find(r => safeLower(r.driver_name) === myName);
-  if (myRide) {
-    statusCard.classList.remove('hidden');
-    if (myRide.is_direct && myRide.seats_total === 0) {
-      descEl.innerHTML = `Tu vas <strong>directement sur place par tes propres moyens</strong>.`;
-    } else {
-      const out = myRide.seats_outward !== undefined ? myRide.seats_outward : myRide.seats_total;
-      const ret = myRide.seats_return !== undefined ? myRide.seats_return : myRide.seats_total;
-      descEl.innerHTML = `Tu proposes ta voiture (<strong>${out} pl. Aller</strong> / <strong>${ret} pl. Retour</strong>)${myRide.is_direct ? ' • Direct 📍' : ''}.`;
-    }
+  const myOutPassengerRide = rides.find(r => (r.outward_passengers || []).map(p => safeLower(p)).includes(myName));
+  const myRetPassengerRide = rides.find(r => (r.return_passengers || []).map(p => safeLower(p)).includes(myName));
+  const myWait = waiting.find(w => safeLower(w.player_name) === myName);
 
-    if (!isLocked) {
+  let outLabel = null;
+  let retLabel = null;
+
+  // Statut ALLER
+  if (myRide && toBool(myRide.offers_outward)) {
+    if (toBool(myRide.is_direct) && Number(myRide.seats_total || 0) === 0) {
+      outLabel = 'Direct sur place 📍';
+    } else {
+      const sOut = myRide.seats_outward !== undefined ? myRide.seats_outward : myRide.seats_total;
+      outLabel = `Conducteur (${sOut} pl.) 🚗`;
+    }
+  } else if (myOutPassengerRide) {
+    outLabel = `Passager de <strong>${escapeHtml(myOutPassengerRide.driver_name)}</strong>`;
+  } else if (myWait && toBool(myWait.needs_outward)) {
+    outLabel = 'En recherche de place 🙋';
+  }
+
+  // Statut RETOUR
+  if (myRide && toBool(myRide.offers_return)) {
+    if (toBool(myRide.is_direct) && Number(myRide.seats_total || 0) === 0) {
+      retLabel = 'Direct sur place 📍';
+    } else {
+      const sRet = myRide.seats_return !== undefined ? myRide.seats_return : myRide.seats_total;
+      retLabel = `Conducteur (${sRet} pl.) 🚗`;
+    }
+  } else if (myRetPassengerRide) {
+    retLabel = `Passager de <strong>${escapeHtml(myRetPassengerRide.driver_name)}</strong>`;
+  } else if (myWait && toBool(myWait.needs_return)) {
+    retLabel = 'En recherche de place 🙋';
+  }
+
+  // Si aucune participation
+  if (!outLabel && !retLabel) {
+    statusCard.classList.add('hidden');
+    return;
+  }
+
+  statusCard.classList.remove('hidden');
+  descEl.innerHTML = `
+    <div class="space-y-1">
+      <div>➡️ <strong>Aller :</strong> ${outLabel || '<span class="text-slate-400 font-semibold italic">Non inscrit</span>'}</div>
+      <div>⬅️ <strong>Retour :</strong> ${retLabel || '<span class="text-slate-400 font-semibold italic">Non inscrit</span>'}</div>
+    </div>
+  `;
+
+  if (isLocked) return;
+
+  // Boutons d'action contextuels
+  if (myRide) {
+    if (!toBool(myRide.is_direct) || Number(myRide.seats_total || 0) > 0) {
       const editBtn = document.createElement('button');
       editBtn.className = 'btn-tap py-2 px-3 bg-blue-600 text-white hover:bg-blue-700 font-black rounded-xl text-xs flex items-center gap-1 shadow-sm';
       editBtn.innerHTML = `<span>✏️</span> <span>Modifier mes places</span>`;
       editBtn.onclick = () => openEditRideModal(myRide);
       actionsEl.appendChild(editBtn);
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'btn-tap py-2 px-3 bg-rose-100 text-rose-800 hover:bg-rose-200 font-bold rounded-xl text-xs flex items-center gap-1 border border-rose-300';
-      deleteBtn.innerHTML = `<span>🗑️</span> <span>Annuler</span>`;
-      deleteBtn.onclick = () => handleDeleteVehicle(myRide.id, deleteBtn);
-      actionsEl.appendChild(deleteBtn);
     }
-    return;
+
+    const delRideBtn = document.createElement('button');
+    delRideBtn.className = 'btn-tap py-2 px-3 bg-rose-100 text-rose-800 hover:bg-rose-200 font-bold rounded-xl text-xs flex items-center gap-1 border border-rose-300';
+    delRideBtn.innerHTML = `<span>🗑️</span> <span>Annuler ${toBool(myRide.is_direct) ? 'trajet direct' : 'mon véhicule'}</span>`;
+    delRideBtn.onclick = () => handleDeleteVehicle(myRide.id, delRideBtn);
+    actionsEl.appendChild(delRideBtn);
   }
 
-  // Cas 2 : Passager
-  const passengerRides = [];
-  rides.forEach(r => {
-    const inOut = (r.outward_passengers || []).map(p => safeLower(p)).includes(myName);
-    const inRet = (r.return_passengers || []).map(p => safeLower(p)).includes(myName);
-    if (inOut || inRet) {
-      passengerRides.push({ ride: r, inOut, inRet });
-    }
-  });
-
-  if (passengerRides.length > 0) {
-    statusCard.classList.remove('hidden');
-    let text = 'Inscrit comme passager :<br>';
-    passengerRides.forEach(pr => {
-      const segments = [];
-      if (pr.inOut) segments.push('Aller');
-      if (pr.inRet) segments.push('Retour');
-      text += `• Voiture de <strong>${escapeHtml(pr.ride.driver_name)}</strong> (${segments.join(', ')})<br>`;
-    });
-    descEl.innerHTML = text;
-
-    if (!isLocked) {
-      passengerRides.forEach(pr => {
-        if (pr.inOut) {
-          const btn = document.createElement('button');
-          btn.className = 'btn-tap py-1.5 px-3 bg-rose-100 text-rose-800 hover:bg-rose-200 font-bold rounded-lg text-xs border border-rose-300';
-          btn.textContent = `Quitter l'Aller (${pr.ride.driver_name})`;
-          btn.onclick = () => handleLeaveRide(pr.ride.id, AppState.currentUser, 'outward', btn);
-          actionsEl.appendChild(btn);
-        }
-        if (pr.inRet) {
-          const btn = document.createElement('button');
-          btn.className = 'btn-tap py-1.5 px-3 bg-rose-100 text-rose-800 hover:bg-rose-200 font-bold rounded-lg text-xs border border-rose-300';
-          btn.textContent = `Quitter le Retour (${pr.ride.driver_name})`;
-          btn.onclick = () => handleLeaveRide(pr.ride.id, AppState.currentUser, 'return', btn);
-          actionsEl.appendChild(btn);
-        }
-      });
-    }
-    return;
+  if (myOutPassengerRide) {
+    const leaveOutBtn = document.createElement('button');
+    leaveOutBtn.className = 'btn-tap py-1.5 px-3 bg-rose-100 text-rose-800 hover:bg-rose-200 font-bold rounded-lg text-xs border border-rose-300';
+    leaveOutBtn.textContent = `Quitter l'Aller (${myOutPassengerRide.driver_name})`;
+    leaveOutBtn.onclick = () => handleLeaveRide(myOutPassengerRide.id, AppState.currentUser, 'outward', leaveOutBtn);
+    actionsEl.appendChild(leaveOutBtn);
   }
 
-  // Cas 3 : En liste d'attente
-  const myWait = waiting.find(w => safeLower(w.player_name) === myName);
+  if (myRetPassengerRide && myRetPassengerRide.id !== myOutPassengerRide?.id) {
+    const leaveRetBtn = document.createElement('button');
+    leaveRetBtn.className = 'btn-tap py-1.5 px-3 bg-rose-100 text-rose-800 hover:bg-rose-200 font-bold rounded-lg text-xs border border-rose-300';
+    leaveRetBtn.textContent = `Quitter le Retour (${myRetPassengerRide.driver_name})`;
+    leaveRetBtn.onclick = () => handleLeaveRide(myRetPassengerRide.id, AppState.currentUser, 'return', leaveRetBtn);
+    actionsEl.appendChild(leaveRetBtn);
+  } else if (myRetPassengerRide) {
+    const leaveRetBtn = document.createElement('button');
+    leaveRetBtn.className = 'btn-tap py-1.5 px-3 bg-rose-100 text-rose-800 hover:bg-rose-200 font-bold rounded-lg text-xs border border-rose-300';
+    leaveRetBtn.textContent = `Quitter le Retour (${myRetPassengerRide.driver_name})`;
+    leaveRetBtn.onclick = () => handleLeaveRide(myRetPassengerRide.id, AppState.currentUser, 'return', leaveRetBtn);
+    actionsEl.appendChild(leaveRetBtn);
+  }
+
   if (myWait) {
-    statusCard.classList.remove('hidden');
-    const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
-    const needsOut = toBool(myWait.needs_outward);
-    const needsRet = toBool(myWait.needs_return);
-    let needText = '';
-    if (needsOut && needsRet) needText = 'Aller et Retour';
-    else if (needsOut) needText = 'Aller uniquement';
-    else needText = 'Retour uniquement';
-
-    descEl.innerHTML = `Tu es <strong>en recherche d'une place</strong> (${needText}).`;
-
-    if (!isLocked) {
-      const cancelBtn = document.createElement('button');
-      cancelBtn.className = 'btn-tap py-2 px-3 bg-amber-200 text-amber-950 hover:bg-amber-300 font-bold rounded-xl text-xs border border-amber-400';
-      cancelBtn.textContent = "Me retirer de la liste";
-      cancelBtn.onclick = () => handleLeaveWaitingList(myWait.id, cancelBtn);
-      actionsEl.appendChild(cancelBtn);
-    }
-    return;
+    const cancelWaitBtn = document.createElement('button');
+    cancelWaitBtn.className = 'btn-tap py-2 px-3 bg-amber-200 text-amber-950 hover:bg-amber-300 font-bold rounded-xl text-xs border border-amber-400';
+    cancelWaitBtn.textContent = "Me retirer de la liste d'attente";
+    cancelWaitBtn.onclick = () => handleLeaveWaitingList(myWait.id, cancelWaitBtn);
+    actionsEl.appendChild(cancelWaitBtn);
   }
-
-  statusCard.classList.add('hidden');
 }
 

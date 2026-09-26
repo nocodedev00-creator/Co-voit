@@ -3,73 +3,154 @@
  */
 
 function calculateAndRenderSummary(rides, waiting) {
+  const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
   const uniqueParticipants = new Set();
-  let directCount = 0;
+
   let outwardSeats = 0;
   let returnSeats = 0;
-  let outwardDemands = 0;
-  let returnDemands = 0;
+  let outwardRdvPassengers = 0;
+  let returnRdvPassengers = 0;
+  let outwardRdvDrivers = 0;
+  let returnRdvDrivers = 0;
+
+  let outwardDirectDrivers = 0;
+  let returnDirectDrivers = 0;
+  let outwardDirectPassengers = 0;
+  let returnDirectPassengers = 0;
 
   rides.forEach(r => {
     const dName = safeLower(r.driver_name);
     if (dName) uniqueParticipants.add(dName);
 
-    if (r.is_direct) {
-      directCount++;
+    const isDirect = toBool(r.is_direct);
+    const offersOut = toBool(r.offers_outward);
+    const offersRet = toBool(r.offers_return);
+
+    const sOut = r.seats_outward !== undefined ? Number(r.seats_outward) : Number(r.seats_total || 0);
+    const sRet = r.seats_return !== undefined ? Number(r.seats_return) : Number(r.seats_total || 0);
+
+    const outPass = Array.isArray(r.outward_passengers) ? r.outward_passengers : [];
+    const retPass = Array.isArray(r.return_passengers) ? r.return_passengers : [];
+
+    outPass.forEach(p => {
+      const pLower = safeLower(p);
+      if (pLower) uniqueParticipants.add(pLower);
+    });
+
+    retPass.forEach(p => {
+      const pLower = safeLower(p);
+      if (pLower) uniqueParticipants.add(pLower);
+    });
+
+    if (isDirect) {
+      if (offersOut) {
+        outwardDirectDrivers++;
+        outwardDirectPassengers += outPass.length;
+      }
+      if (offersRet) {
+        returnDirectDrivers++;
+        returnDirectPassengers += retPass.length;
+      }
     } else {
-      if (r.offers_outward) outwardSeats += Number(r.seats_outward !== undefined ? r.seats_outward : (r.seats_total || 0));
-      if (r.offers_return) returnSeats += Number(r.seats_return !== undefined ? r.seats_return : (r.seats_total || 0));
+      if (offersOut) {
+        outwardRdvDrivers++;
+        outwardSeats += sOut;
+        outwardRdvPassengers += outPass.length;
+      }
+      if (offersRet) {
+        returnRdvDrivers++;
+        returnSeats += sRet;
+        returnRdvPassengers += retPass.length;
+      }
     }
-
-    (r.outward_passengers || []).forEach(p => {
-      const pLower = safeLower(p);
-      if (pLower) uniqueParticipants.add(pLower);
-      outwardDemands++;
-    });
-
-    (r.return_passengers || []).forEach(p => {
-      const pLower = safeLower(p);
-      if (pLower) uniqueParticipants.add(pLower);
-      returnDemands++;
-    });
   });
+
+  let outwardWaiting = 0;
+  let returnWaiting = 0;
 
   waiting.forEach(w => {
     if (w && w.player_name) {
       const wLower = safeLower(w.player_name);
       if (wLower) uniqueParticipants.add(wLower);
     }
-    if (w.needs_outward) outwardDemands++;
-    if (w.needs_return) returnDemands++;
+    if (toBool(w.needs_outward)) outwardWaiting++;
+    if (toBool(w.needs_return)) returnWaiting++;
   });
 
-  document.getElementById('stat-total-respondents').textContent = `${uniqueParticipants.size} joueur(s)`;
-  document.getElementById('stat-direct-count').textContent = `${directCount} joueur(s)`;
+  const outwardRdvTotal = outwardRdvDrivers + outwardRdvPassengers + outwardWaiting;
+  const returnRdvTotal = returnRdvDrivers + returnRdvPassengers + returnWaiting;
 
-  document.getElementById('stat-outward-seats').textContent = outwardSeats;
-  document.getElementById('stat-outward-demands').textContent = outwardDemands;
-  document.getElementById('stat-return-seats').textContent = returnSeats;
-  document.getElementById('stat-return-demands').textContent = returnDemands;
+  const outwardDirectTotal = outwardDirectDrivers + outwardDirectPassengers;
+  const returnDirectTotal = returnDirectDrivers + returnDirectPassengers;
+
+  const outwardDemands = outwardRdvPassengers + outwardWaiting;
+  const returnDemands = returnRdvPassengers + returnWaiting;
 
   const soldeOutward = outwardSeats - outwardDemands;
   const soldeReturn = returnSeats - returnDemands;
 
+  const totalRespEl = document.getElementById('stat-total-respondents');
+  if (totalRespEl) totalRespEl.textContent = `${uniqueParticipants.size} joueur(s)`;
+
+  // ALLER
+  const elOutRdv = document.getElementById('stat-outward-rdv-total');
+  if (elOutRdv) elOutRdv.textContent = `${outwardRdvTotal} pers.`;
+
+  const elOutDirect = document.getElementById('stat-outward-direct-total');
+  if (elOutDirect) elOutDirect.textContent = `${outwardDirectTotal} pers.`;
+
+  const elOutSeats = document.getElementById('stat-outward-seats-detail');
+  if (elOutSeats) {
+    if (outwardSeats === 0 && outwardDemands === 0) {
+      elOutSeats.textContent = '0 pl. offerte';
+    } else {
+      elOutSeats.innerHTML = `${outwardSeats} pl. <span class="font-normal text-slate-500">(${outwardDemands} demandée${outwardDemands > 1 ? 's' : ''})</span>`;
+    }
+  }
+
+  // RETOUR
+  const elRetRdv = document.getElementById('stat-return-rdv-total');
+  if (elRetRdv) elRetRdv.textContent = `${returnRdvTotal} pers.`;
+
+  const elRetDirect = document.getElementById('stat-return-direct-total');
+  if (elRetDirect) elRetDirect.textContent = `${returnDirectTotal} pers.`;
+
+  const elRetSeats = document.getElementById('stat-return-seats-detail');
+  if (elRetSeats) {
+    if (returnSeats === 0 && returnDemands === 0) {
+      elRetSeats.textContent = '0 pl. offerte';
+    } else {
+      elRetSeats.innerHTML = `${returnSeats} pl. <span class="font-normal text-slate-500">(${returnDemands} demandée${returnDemands > 1 ? 's' : ''})</span>`;
+    }
+  }
+
+  // Badges Bilan
   const badgeOutward = document.getElementById('badge-bilan-outward');
-  if (soldeOutward >= 0) {
-    badgeOutward.className = 'text-[10px] font-black px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300 whitespace-nowrap shrink-0';
-    badgeOutward.textContent = soldeOutward === 0 ? 'Complet (0)' : `+${soldeOutward} libre`;
-  } else {
-    badgeOutward.className = 'text-[10px] font-black px-2 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-300 whitespace-nowrap shrink-0';
-    badgeOutward.textContent = `Manque ${Math.abs(soldeOutward)}`;
+  if (badgeOutward) {
+    if (outwardRdvTotal === 0 && outwardSeats === 0) {
+      badgeOutward.className = 'text-[10px] font-black px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-300 whitespace-nowrap shrink-0';
+      badgeOutward.textContent = 'Aucun RDV';
+    } else if (soldeOutward >= 0) {
+      badgeOutward.className = 'text-[10px] font-black px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300 whitespace-nowrap shrink-0';
+      badgeOutward.textContent = soldeOutward === 0 ? 'Complet (0)' : `+${soldeOutward} libre${soldeOutward > 1 ? 's' : ''}`;
+    } else {
+      badgeOutward.className = 'text-[10px] font-black px-2 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-300 whitespace-nowrap shrink-0';
+      badgeOutward.textContent = `Manque ${Math.abs(soldeOutward)}`;
+    }
   }
 
   const badgeReturn = document.getElementById('badge-bilan-return');
-  if (soldeReturn >= 0) {
-    badgeReturn.className = 'text-[10px] font-black px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300 whitespace-nowrap shrink-0';
-    badgeReturn.textContent = soldeReturn === 0 ? 'Complet (0)' : `+${soldeReturn} libre`;
-  } else {
-    badgeReturn.className = 'text-[10px] font-black px-2 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-300 whitespace-nowrap shrink-0';
-    badgeReturn.textContent = `Manque ${Math.abs(soldeReturn)}`;
+  if (badgeReturn) {
+    if (returnRdvTotal === 0 && returnSeats === 0) {
+      badgeReturn.className = 'text-[10px] font-black px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-300 whitespace-nowrap shrink-0';
+      badgeReturn.textContent = 'Aucun RDV';
+    } else if (soldeReturn >= 0) {
+      badgeReturn.className = 'text-[10px] font-black px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300 whitespace-nowrap shrink-0';
+      badgeReturn.textContent = soldeReturn === 0 ? 'Complet (0)' : `+${soldeReturn} libre${soldeReturn > 1 ? 's' : ''}`;
+    } else {
+      badgeReturn.className = 'text-[10px] font-black px-2 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-300 whitespace-nowrap shrink-0';
+      badgeReturn.textContent = `Manque ${Math.abs(soldeReturn)}`;
+    }
   }
 }
 
