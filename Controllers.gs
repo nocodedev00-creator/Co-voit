@@ -349,20 +349,21 @@ function ctrlJoinRide(matchId, rideId, playerName, direction) {
       if (direction === 'outward' && !ride.offers_outward) return responseError("Ce véhicule n'assure pas l'aller.");
       if (direction === 'return' && !ride.offers_return) return responseError("Ce véhicule n'assure pas le retour.");
 
-      // Restriction liste d'attente : si le joueur cherche une place pour UN SEUL sens,
-      // il ne peut rejoindre un véhicule que dans ce sens (cohérence métier).
+      // Restriction liste d'attente : l'utilisateur doit obligatoirement avoir choisi "Je cherche"
+      // (être en liste d'attente) pour ce trajet afin de pouvoir monter dans un véhicule.
       const waitingForUser = getTableRecords(DB_SCHEMA.WAITING_LIST.sheetName)
         .filter(w => w.match_id === matchId)
         .find(w => safeLower(w.player_name) === safeLower(cleanName));
-      if (waitingForUser) {
-        const needsOut = waitingForUser.needs_outward === true || waitingForUser.needs_outward === 'true';
-        const needsRet = waitingForUser.needs_return === true || waitingForUser.needs_return === 'true';
-        if (direction === 'outward' && !needsOut) {
-          return responseError("Vous cherchez une place uniquement pour le retour : impossible de rejoindre l'aller.");
-        }
-        if (direction === 'return' && !needsRet) {
-          return responseError("Vous cherchez une place uniquement pour l'aller : impossible de rejoindre le retour.");
-        }
+      if (!waitingForUser) {
+        return responseError("Vous devez d'abord vous inscrire via le bouton 'Je cherche' pour pouvoir réserver une place.");
+      }
+      const needsOut = waitingForUser.needs_outward === true || waitingForUser.needs_outward === 'true';
+      const needsRet = waitingForUser.needs_return === true || waitingForUser.needs_return === 'true';
+      if (direction === 'outward' && !needsOut) {
+        return responseError("Vous cherchez une place uniquement pour le retour : impossible de rejoindre l'aller.");
+      }
+      if (direction === 'return' && !needsRet) {
+        return responseError("Vous cherchez une place uniquement pour l'aller : impossible de rejoindre le retour.");
       }
 
       // Restriction direct : si le joueur est noté direct sur place pour ce trajet, il ne peut pas rejoindre un véhicule

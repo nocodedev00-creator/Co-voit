@@ -93,6 +93,7 @@ function renderUserCurrentStatus(rides, waiting, isLocked) {
 
   if (!AppState.currentUser) {
     statusCard.classList.add('hidden');
+    document.getElementById('match-actions-container')?.classList.remove('hidden');
     return;
   }
 
@@ -140,10 +141,12 @@ function renderUserCurrentStatus(rides, waiting, isLocked) {
   // Si aucune participation
   if (!outLabel && !retLabel) {
     statusCard.classList.add('hidden');
+    document.getElementById('match-actions-container')?.classList.remove('hidden');
     return;
   }
 
   statusCard.classList.remove('hidden');
+  document.getElementById('match-actions-container')?.classList.add('hidden');
   descEl.innerHTML = `
     <div class="space-y-1">
       <div>➡️ <strong>Aller :</strong> ${outLabel || '<span class="text-slate-400 font-semibold italic">Non inscrit</span>'}</div>

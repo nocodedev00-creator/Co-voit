@@ -17,30 +17,36 @@ function createRideCardElement(ride, isLocked, waitingList) {
   const allRides = AppState.currentMatchData?.rides || [];
   const myDirect = myName ? allRides.find(r => safeLower(r.driver_name) === myName && toBool(r.is_direct)) : null;
 
-  let canJoinOutward = true;
-  let canJoinReturn = true;
+  const isSeekingOut = Boolean(myWait && toBool(myWait.needs_outward));
+  const isSeekingRet = Boolean(myWait && toBool(myWait.needs_return));
+
+  const canJoinOutward = isSeekingOut && (!myDirect || !toBool(myDirect.offers_outward));
+  const canJoinReturn = isSeekingRet && (!myDirect || !toBool(myDirect.offers_return));
+
   let blockedReasonOutward = '';
   let blockedReasonReturn = '';
 
-  if (myWait) {
-    if (!toBool(myWait.needs_outward)) {
-      canJoinOutward = false;
+  if (!canJoinOutward) {
+    if (myDirect && toBool(myDirect.offers_outward)) {
+      blockedReasonOutward = "Direct sur place à l'Aller";
+    } else if (myWait && toBool(myWait.needs_return) && !toBool(myWait.needs_outward)) {
       blockedReasonOutward = 'Recherche Retour uniquement';
-    }
-    if (!toBool(myWait.needs_return)) {
-      canJoinReturn = false;
-      blockedReasonReturn = 'Recherche Aller uniquement';
+    } else if (myName && isDriver) {
+      blockedReasonOutward = 'Conducteur';
+    } else {
+      blockedReasonOutward = 'Choisir "Je cherche" pour monter';
     }
   }
 
-  if (myDirect) {
-    if (toBool(myDirect.offers_outward)) {
-      canJoinOutward = false;
-      blockedReasonOutward = "Direct sur place à l'Aller";
-    }
-    if (toBool(myDirect.offers_return)) {
-      canJoinReturn = false;
+  if (!canJoinReturn) {
+    if (myDirect && toBool(myDirect.offers_return)) {
       blockedReasonReturn = 'Direct sur place au Retour';
+    } else if (myWait && toBool(myWait.needs_outward) && !toBool(myWait.needs_return)) {
+      blockedReasonReturn = 'Recherche Aller uniquement';
+    } else if (myName && isDriver) {
+      blockedReasonReturn = 'Conducteur';
+    } else {
+      blockedReasonReturn = 'Choisir "Je cherche" pour monter';
     }
   }
 

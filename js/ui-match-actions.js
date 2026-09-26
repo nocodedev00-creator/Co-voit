@@ -45,13 +45,15 @@ async function handleJoinRide(rideId, direction, btn) {
   const myWait = waitingList.find(w => safeLower(w.player_name) === myName);
   const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
 
-  if (myWait) {
-    if (direction === 'outward' && !toBool(myWait.needs_outward)) {
-      return showToast("Vous cherchez une place uniquement pour le retour : impossible de réserver l'aller.", 'error');
-    }
-    if (direction === 'return' && !toBool(myWait.needs_return)) {
-      return showToast("Vous cherchez une place uniquement pour l'aller : impossible de réserver le retour.", 'error');
-    }
+  if (!myWait) {
+    return showToast("Vous devez d'abord vous inscrire via le bouton 'Je cherche' pour pouvoir réserver une place.", 'error');
+  }
+
+  if (direction === 'outward' && !toBool(myWait.needs_outward)) {
+    return showToast("Vous cherchez une place uniquement pour le retour : impossible de réserver l'aller.", 'error');
+  }
+  if (direction === 'return' && !toBool(myWait.needs_return)) {
+    return showToast("Vous cherchez une place uniquement pour l'aller : impossible de réserver le retour.", 'error');
   }
 
   const allRides = AppState.currentMatchData?.rides || [];
