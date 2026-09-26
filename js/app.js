@@ -27,6 +27,15 @@ document.addEventListener('DOMContentLoaded', () => {
     loadMatchDetails();
   } else {
     document.getElementById('view-no-access').classList.remove('hidden');
+    const formLogin = document.getElementById('form-login-admin');
+    if (formLogin) {
+      formLogin.onsubmit = (e) => {
+        e.preventDefault();
+        const input = document.getElementById('input-login-admin-token');
+        const token = input ? input.value.trim() : '';
+        if (token) window.location.href = `${window.location.origin}${window.location.pathname}?admin=${encodeURIComponent(token)}`;
+      };
+    }
   }
 
   // --- MODALE SYNTHÈSE DÉTAILLÉE ---
@@ -69,19 +78,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Fermeture des modales
   document.querySelectorAll('.btn-close-modal').forEach(btn => {
-    btn.onclick = () => {
-      closeModal('modal-create-match');
-      closeModal('modal-whatsapp');
-      closeModal('modal-add-car');
-      closeModal('modal-waiting');
-      closeModal('modal-summary-details');
-    };
+    btn.onclick = () => ['modal-create-match','modal-whatsapp','modal-add-car','modal-waiting','modal-summary-details'].forEach(closeModal);
   });
 
   // Boutons d'actualisation
   const btnAdminRefresh = document.getElementById('btn-admin-refresh');
   if (btnAdminRefresh) btnAdminRefresh.onclick = loadAdminDashboard;
-
   const btnPlayerRefresh = document.getElementById('btn-player-refresh');
   if (btnPlayerRefresh) btnPlayerRefresh.onclick = loadMatchDetails;
 
@@ -212,12 +214,10 @@ document.addEventListener('DOMContentLoaded', () => {
         is_direct: document.getElementById('check-car-direct').checked,
         adminToken: AppState.adminToken
       };
-
       if (!payload.offers_outward && !payload.offers_return) {
         showToast("Cochez au moins l'aller ou le retour.", 'error');
         return;
       }
-
       try {
         if (editId) {
           await callServer('ctrlUpdateVehicle', AppState.matchId, editId, driverName, payload);

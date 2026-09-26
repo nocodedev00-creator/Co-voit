@@ -42,15 +42,45 @@
       <div class="h-44 bg-white rounded-2xl border border-slate-200"></div>
     </div>
 
-    <!-- ÉCRAN D'ACCÈS REFUSÉ / LIEN INVALIDE -->
-    <div id="view-no-access" class="hidden text-center py-16 px-4 space-y-3">
-      <div class="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto text-2xl">
-        🔒
+    <!-- ÉCRAN D'ACCUEIL / ACCÈS REQUIERT LIEN OU CONNEXION COACH -->
+    <div id="view-no-access" class="hidden py-6 px-2 space-y-5">
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center mx-auto text-3xl shadow-sm">
+          🚗
+        </div>
+        <h2 class="text-xl font-black text-slate-900">Co'Voit' Club</h2>
+        <p class="text-xs text-slate-500 max-w-xs mx-auto">
+          Organisation du covoiturage pour les déplacements de votre équipe.
+        </p>
       </div>
-      <h2 class="text-lg font-bold text-slate-800">Lien d'accès club requis</h2>
-      <p class="text-xs text-slate-500 max-w-xs mx-auto">
-        Pour accéder au covoiturage, veuillez utiliser le lien WhatsApp partagé par votre coach ou votre responsable d'équipe.
-      </p>
+
+      <!-- Bloc Joueurs -->
+      <div class="bg-white rounded-2xl p-4 border-2 border-slate-200 shadow-sm space-y-2">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">👤</span>
+          <h3 class="text-xs font-black text-slate-800 uppercase tracking-wide">Vous êtes joueur ?</h3>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Pour rejoindre une rencontre, cliquez directement sur le <strong>lien du match</strong> partagé sur votre groupe WhatsApp.
+        </p>
+      </div>
+
+      <!-- Bloc Coach / Responsable -->
+      <div class="bg-amber-50/90 rounded-2xl p-4 border-2 border-amber-300 shadow-sm space-y-3">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">👑</span>
+          <h3 class="text-xs font-black text-amber-950 uppercase tracking-wide">Espace Coach / Responsable</h3>
+        </div>
+        <p class="text-xs text-amber-900/80">
+          Entrez votre code secret administrateur (onglet CONFIG du classeur) :
+        </p>
+        <form id="form-login-admin" class="space-y-2">
+          <input type="password" id="input-login-admin-token" required placeholder="Votre code secret (ADMIN_TOKEN)" class="w-full px-3.5 py-2.5 rounded-xl border border-amber-300 focus:ring-2 focus:ring-amber-500 text-xs font-mono bg-white">
+          <button type="submit" class="btn-tap w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-sm">
+            Ouvrir mon tableau de bord
+          </button>
+        </form>
+      </div>
     </div>
 
     <!-- VUE TABLEAU DE BORD ADMINISTRATEUR -->

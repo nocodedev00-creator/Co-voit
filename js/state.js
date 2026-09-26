@@ -25,6 +25,9 @@ const AppState = {
   adminMatches: []
 };
 
+// Exposition sur l'objet window pour compatibilité globale absolue
+window.AppState = AppState;
+
 /**
  * Construit une URL propre de partage (vers GitHub Pages) sans dépendance à Google.
  * @param {Object} extraParams - Paramètres d'URL (ex: { m: 'matchId' }).
@@ -44,3 +47,4 @@ function buildAppUrl(extraParams = {}) {
   return query ? `${base}?${query}` : base;
 }
 
+window.buildAppUrl = buildAppUrl;
