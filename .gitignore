@@ -1,0 +1,25 @@
+# Système d'exploitation
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Éditeurs & IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Dépendances & Builds
+node_modules/
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environnements & Clés secrètes
+.env
+.env.*
+.clasp.json
+

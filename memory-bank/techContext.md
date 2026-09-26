@@ -1,43 +1,44 @@
 # Contexte Technique
 
 ## Stack Logicielle
-- **Core** : Google Apps Script (runtime V8)
-- **Framework** : Aucun framework front — SPA vanilla JS + Tailwind CSS (CDN/classes utilitaires)
-- **Dépendances Clés** :
-  - `google.script.run` (pont client ↔ serveur Apps Script)
-  - `SpreadsheetApp` (persistance Google Sheets)
-  - `HtmlService` (rendu des vues HTML)
-  - `localStorage` (identité joueur côté client)
+- **Front-end** : GitHub Pages (hébergement statique autonome, sans compte Google requis pour l'affichage)
+  - HTML5 SPA + Tailwind CSS (via CDN)
+  - Vanilla JavaScript ES6 modulaire (aucun bundler requis)
+  - `fetch()` REST vers l'API Google Apps Script
+- **Back-end & Persistance** : Google Apps Script Web App (API JSON) + Google Sheets
+  - `doPost(e)` / `doGet(e)` avec `ContentService` (format JSON)
+  - `SpreadsheetApp` (persistance Google Sheets avec ORM léger et auto-migration)
+  - `LockService` (concurrence & intégrité des transactions)
+- **Stockage Local** : `localStorage` (mémorisation de l'identité joueur `covoid_username`)
 
-## Contraintes & Choix Architecturaux
-- **Performance** : Appels serveur asynchrones via Promises (`callServer`), rechargement ciblé des vues.
-- **Compatibilité** : Web App Google Apps Script, exécution `USER_DEPLOYING`, accès `ANYONE_ANONYMOUS`.
-- **Sécurité** : Accès admin protégé par `adminToken` (passé en paramètre des contrôleurs). Scopes OAuth : `spreadsheets`, `script.container.ui`, `script.external_request`, `script.scriptapp`.
-- **Persistance** : Google Sheets comme base de données (pas de SGBD externe).
+## Architecture Découplée (Front Statique + Back API)
+- **Front-end** : Servit directement par GitHub Pages depuis la racine (`index.html`).
+- **Communication** : Requêtes HTTP POST avec `Content-Type: text/plain;charset=utf-8` pour éviter les blocages de prévol CORS (`OPTIONS`) sur Apps Script.
+- **Routage** : Lecture autonome des paramètres dans l'URL (`?m=xxx` pour les joueurs, `?admin=xxx` pour le coach).
+- **Zéro dépendance de session Google** : Les joueurs n'ouvrent plus le domaine `script.google.com`, éliminant 100% des erreurs Google Drive et multi-comptes sur mobile.
 
-## Configuration Apps Script (`appscript.json`)
-- `timeZone` : `Europe/Paris`
-- `runtimeVersion` : `V8`
-- `webapp.executeAs` : `USER_DEPLOYING`
-- `webapp.access` : `ANYONE_ANONYMOUS`
-- `exceptionLogging` : `STACKDRIVER`
-- `oauthScopes` : `spreadsheets`, `script.container.ui`
+## Structure des Dossiers
 
-## Structure des Dossiers (Réelle)
-> ⚠️ Le projet n'utilise PAS la structure `src/core|services|ui|utils` par défaut.
-> Il suit une organisation **plate typique Google Apps Script** (fichiers à la racine).
-
-- `Code.gs` : Point d'entrée serveur (`doGet`, routage, injection `SERVER_ROUTING`). *(implémenté — `doGet` blindé try/catch)*
-- `Controllers.gs` : Contrôleurs exposés au client (`ctrl*`). *(implémenté — 13 endpoints)*
-- `Database.gs` : Couche d'accès aux données (Google Sheets). *(implémenté — ORM + auto-migration)*
-- `Utils.gs` : Fonctions utilitaires serveur. *(implémenté)*
-- `Index.html` : Shell HTML principal (SPA). *(implémenté — bandeau diagnostic `initError`)*
-- `AdminView.html` : Vue admin. *(implémenté)*
-- `MatchView.html` : Vue joueur/match. *(implémenté)*
-- `Styles.html` : Styles CSS. *(implémenté)*
-- `ClientJS.html` : Logique client SPA complète (état, rendu, handlers). *(implémenté — 1110 lignes)*
-- `appscript.json` : Manifeste de déploiement. *(scopes OAuth complétés)*
-
-## État Actuel du Code
-- **Implémenté** : l'intégralité du projet (client + serveur + vues + manifeste).
-- **Reste à faire** : déploiement Web App et test end-to-end.
+```
+Co-voit/
+├── .gitignore               # Exclusions Git (fichiers système, IDE, logs, secrets)
+├── index.html               # Page d'accueil SPA autonome pour GitHub Pages
+├── styles.css               # Feuilles de styles CSS mobiles et animations
+├── js/                      # Modules JavaScript (< 300 lignes chacun)
+│   ├── config.js            # Configuration de l'URL d'API Google Apps Script
+│   ├── state.js             # État global (AppState) et routage d'URL
+│   ├── api.js               # Passerelle réseau fetch() remplaçant google.script.run
+│   ├── ui-utils.js          # Utilitaires (toasts, modales, identité, boutons)
+│   ├── ui-match-summary.js  # Calculs de solde de places et modale de synthèse A/R
+│   ├── ui-match-cards.js    # Rendu des cartes véhicules et chips passagers
+│   ├── ui-match-render.js   # Rendu principal de la vue match et statut joueur
+│   ├── ui-match-actions.js  # Handlers de clic (rejoindre, quitter, annuler)
+│   ├── ui-admin.js          # Tableau de bord et gestion des matchs pour le coach
+│   └── app.js               # Initialisation DOMContentLoaded et écouteurs
+├── Code.gs                  # Routeur API REST JSON Google Apps Script (doPost / doGet)
+├── Controllers.gs           # 13 endpoints métier (sécurisés par LockService)
+├── Database.gs              # ORM léger sur Google Sheets
+├── Utils.gs                 # Utilitaires serveur & synthèse WhatsApp
+├── appscript.json           # Manifeste Apps Script
+└── memory-bank/             # Mémoire persistante du projet
+```

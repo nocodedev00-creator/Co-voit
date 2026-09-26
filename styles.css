@@ -1,0 +1,64 @@
+/* ==========================================================================
+   Co'Voit' - Styles CSS (Ergonomie Tactile & Mobile-First)
+   ========================================================================== */
+:root {
+  --app-primary: #2563eb;
+  --app-primary-dark: #1d4ed8;
+  --app-bg: #f8fafc;
+}
+
+body {
+  background-color: var(--app-bg);
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Cibles tactiles strictes minimum 48px */
+button, 
+input, 
+select, 
+.touch-target {
+  min-height: 48px;
+}
+
+/* Suppression du scroll horizontal */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Micro-interactions tactiles */
+.btn-tap {
+  transition: transform 0.08s ease-in-out, opacity 0.1s ease;
+}
+.btn-tap:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* Animation du Spinner */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-fast {
+  animation: spin 0.7s linear infinite;
+}
+
+/* Modale fluide avec flou d'arrière-plan */
+.modal-backdrop {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+/* Toast Notifications */
+.toast-enter {
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+

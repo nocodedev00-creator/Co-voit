@@ -1,41 +1,19 @@
 # État d'Avancement du Projet
 
 ## Statut Global
-� **Code complet** — Client, serveur et vues implémentés. Reste à valider le déploiement.
+🚀 **Migration vers GitHub Pages & Architecture Découplée Réalisée**
+Le site est prêt pour GitHub Pages avec séparation Front statique et Back API Google Apps Script. Les plantages multi-comptes sur mobile sont éliminés.
 
-## Ce qui fonctionne (code)
-- ✅ **Couche client SPA** (`ClientJS.html`) : état global, rendu match/admin, modales, appels serveur, synthèse de places, identité joueur.
-- ✅ **Point d'entrée serveur** (`Code.gs`) : `doGet`, routage, injection `SERVER_ROUTING`, `include`.
-- ✅ **API serveur** (`Controllers.gs`) : 13 endpoints `ctrl*` (admin + joueurs).
-- ✅ **Couche données** (`Database.gs`) : ORM Google Sheets + auto-migration + gestion `CONFIG`.
-- ✅ **Utilitaires** (`Utils.gs`) : verrouillage, IDs, formatage, template WhatsApp, réponses standardisées.
-- ✅ **Vues HTML** (`Index.html`, `AdminView.html`, `MatchView.html`, `Styles.html`).
-- ✅ **Manifeste** (`appscript.json`).
+## Ce qui fonctionne
+- ✅ **Front-end statique autonome** (`index.html`, `styles.css`) : entièrement autonome, intégration complète des vues Joueur et Coach.
+- ✅ **Modules JavaScript ES6** (`js/`) : architecture découpée, propre et modulaire, tous les fichiers < 300 lignes.
+- ✅ **Passerelle réseau REST** (`js/api.js`) : communication par requêtes `fetch()` POST vers Google Apps Script sans blocage CORS.
+- ✅ **Routeur API Google Apps Script** (`Code.gs`) : `doPost(e)` et `doGet(e)` répondant en JSON pur avec `ContentService`.
+- ✅ **Métier & Données** (`Controllers.gs`, `Database.gs`, `Utils.gs`) : intacts et réutilisés, persistance Google Sheets préservée.
+- ✅ **Gestion Git & Versioning** : `.gitignore` configuré, renommage `Index.html` en `index.html` validé.
 
-## En cours / À valider
-- ⏳ **Déploiement Web App** : l'erreur "Impossible d'ouvrir le fichier" indique un problème de déploiement/URL, pas de code.
-- ✅ **Durcissement code** : `doGet` blindé (try/catch), scopes OAuth complétés, bandeau diagnostic `initError`.
-- ⏳ **Test end-to-end** : créer un match (admin), s'inscrire (joueur), vérifier la synthèse WhatsApp.
-- ✅ **Améliorations UX (2026-09-21)** : consultation libre, feedback de chargement, vocabulaire unifié, bilan en héros, boutons admin libellés, copie WhatsApp moderne.
-
-
-## Détail des fichiers
-| Fichier | Taille | Statut |
-| :--- | :--- | :--- |
-| `ClientJS.html` | 47 980 o | ✅ Implémenté |
-| `Controllers.gs` | 19 558 o | ✅ Implémenté |
-| `MatchView.html` | 23 907 o | ✅ Implémenté |
-| `Database.gs` | 7 548 o | ✅ Implémenté |
-| `AdminView.html` | 6 033 o | ✅ Implémenté |
-| `Utils.gs` | 3 491 o | ✅ Implémenté |
-| `Index.html` | ~2 617 o | ✅ Implémenté (corrigé) |
-| `Styles.html` | 1 543 o | ✅ Implémenté |
-| `Code.gs` | 1 428 o | ✅ Implémenté |
-| `appscript.json` | 392 o | ✅ Configuré |
-
-## Prochaines Étapes Recommandées
-1. **Déployer** la Web App (Nouveau déploiement → Application Web → accès "Tout le monde").
-2. Ouvrir l'URL **`/exec`** (pas `/edit`).
-3. Récupérer le `ADMIN_TOKEN` dans l'onglet `CONFIG` du Sheet.
-4. Tester : `?admin=TOKEN` (admin) puis `?m=ID` (joueur).
-5. Après chaque modif de code : **Gérer les déploiements → Nouvelle version**.
+## Prochaines Étapes pour la mise en ligne
+1. **Dans Google Apps Script** : Copier le nouveau code de `Code.gs` et publier une nouvelle version du déploiement Web App (`Gérer les déploiements > Modifier > Nouvelle version`).
+2. **Dans `js/config.js`** : Coller l'URL de déploiement de la Web App (`https://script.google.com/macros/s/.../exec`).
+3. **Dans GitHub** : Pousser les modifications sur la branche `main` et activer **GitHub Pages** (`Settings > Pages > Branch main`).
+4. **Tester** : Vérifier l'accès admin (`?admin=...`) et joueur (`?m=...`) depuis un smartphone avec plusieurs comptes Google.

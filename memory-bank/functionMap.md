@@ -1,72 +1,121 @@
 # Cartographie des Fonctions
 
 Ce document recense les fonctions clés du projet pour faciliter la maintenance et le debugging.
-*À mettre à jour par l'IA à chaque ajout de fonctionnalité majeure.*
 
-> ⚠️ Le projet suit une organisation **plate Google Apps Script** (pas de `src/`).
-> Les fichiers `.gs` et la plupart des `.html` sont **actuellement vides** — seules les fonctions de `ClientJS.html` sont implémentées.
+## 📁 Modules JavaScript Client (`js/`)
 
-## 📁 `ClientJS.html` (Logique Client SPA)
+### `js/config.js`
+| Configuration | Description |
+| :--- | :--- |
+| `APP_CONFIG.GOOGLE_API_URL` | URL de la Web App Google Apps Script (`/exec`). |
 
+### `js/state.js`
+| Élément | Description |
+| :--- | :--- |
+| `AppState` (objet) | État global : `route`, `matchId`, `adminToken`, `webAppUrl`, `currentUser`, `currentMatchData`, `adminMatches`. |
+| `buildAppUrl(extraParams)` | Génère une URL de partage autonome (GitHub Pages) sans paramètre `authuser`. |
+
+### `js/api.js`
 | Fonction | Description |
 | :--- | :--- |
-| `AppState` (objet) | État global : route, matchId, adminToken, webAppUrl, currentUser, currentMatchData, adminMatches. |
-| `safeLower(val)` | Normalise une valeur en chaîne minuscule trimée (comparaisons de noms). |
-| `formatShortDate(dateStr)` | Formate une date ISO en `JJ/MM/AA`. |
-| `formatShortTime(timeStr)` | Formate une heure en `HH:MM`. |
-| `callServer(methodName, ...args)` | Encapsule `google.script.run` dans une Promise ; gère `{success, data/error}`. |
-| `showToast(message, type)` | Affiche une notification temporaire (info/success/error). |
-| `escapeHtml(str)` | Échappe le HTML (protection XSS). |
-| `openModal(modalId)` / `closeModal(modalId)` | Affiche/masque une modale. |
-| `setUsername(name)` | Définit et persiste le nom joueur (`localStorage`). |
-| `updateUserDisplay()` | Met à jour l'affichage du nom courant. |
-| `checkUserIdentityFlow(reason)` | Ouvre la modale d'identité (connu/inconnu) UNIQUEMENT à l'action ; `reason` = message contextuel affiché dans `#identity-reason`. |
-| `setButtonLoading(btn, isLoading, loadingText)` | Affiche/masque un spinner + désactive un bouton pendant un appel serveur. |
+| `callServer(methodName, ...args)` | Passerelle réseau `fetch` POST (format `text/plain` anti-CORS preflight) vers Google Apps Script. Retourne une Promise résolue avec `data` ou rejetée avec `error`. |
 
-| `loadMatchDetails()` | Charge les détails du match via `ctrlGetMatchDetails` puis rend la vue. |
-| `renderMatchView(data)` | Rend la vue match (titre, statut, résumé, véhicules, liste d'attente). |
-| `calculateAndRenderSummary(rides, waiting)` | Calcule et affiche les soldes de places Aller/Retour et l'indicateur global. |
-| `openSummaryDetailsModal()` | Construit et affiche la modale de synthèse détaillée (Aller puis Retour). |
-| `renderChipsList(containerId, list, chipClasses, emptyText)` | Rend une liste de "chips" dans un conteneur. |
-| `renderUserCurrentStatus(rides, waiting, isLocked)` | Affiche le statut de l'utilisateur (conducteur / passager / en attente). |
-| `openEditRideModal(ride)` | Ouvre la modale d'édition d'un véhicule pré-remplie. |
-| `createRideCardElement(ride, isLocked)` | Construit la carte DOM d'un véhicule (segments Aller/Retour). |
-| `createPassengerChip(rideId, name, direction, isLocked)` | Crée une "chip" passager avec bouton de retrait. |
-| `handleJoinRide(rideId, direction)` | Rejoint un véhicule (`ctrlJoinRide`). |
-| `handleLeaveRide(rideId, playerName, direction)` | Quitte un véhicule (`ctrlLeaveRide`). |
-| `handleDeleteVehicle(rideId)` | Supprime un véhicule (`ctrlDeleteVehicle`). |
-| `handleLeaveWaitingList(waitingId)` | Retire de la liste d'attente (`ctrlLeaveWaitingList`). |
-| `loadAdminDashboard()` | Charge les matchs admin (`ctrlGetAdminMatches`). |
-| `renderAdminMatches(matches)` | Rend la liste des matchs (vue admin) avec actions. |
-| `DOMContentLoaded` (handler) | Initialise la vue selon `AppState.route` et branche tous les handlers d'événements. |
-
-## 📁 `Code.gs` (Serveur — Point d'entrée) — *VIDE*
-
+### `js/ui-utils.js`
 | Fonction | Description |
 | :--- | :--- |
-| `doGet(e)` | *(à implémenter)* Routage + injection `SERVER_ROUTING`. |
+| `safeLower(val)` | Normalise une chaîne en minuscules sans espaces. |
+| `formatShortDate(dateStr)` / `formatShortTime(timeStr)` | Formatage de dates (`JJ/MM/AA`) et d'heures (`HH:MM`). |
+| `escapeHtml(str)` | Échappement anti-XSS des saisies utilisateur. |
+| `showToast(message, type)` | Notifications flottantes temporaires. |
+| `openModal(modalId)` / `closeModal(modalId)` | Gestion de l'affichage des fenêtres modales. |
+| `setUsername(name)` / `updateUserDisplay()` | Gestion et affichage du nom stocké dans `localStorage`. |
+| `checkUserIdentityFlow(reason)` | Déclenchement de la saisie d'identité contextuelle lors d'une action. |
+| `setButtonLoading(btn, isLoading, loadingText)` | Spinner et désactivation temporaire des boutons d'action. |
 
-## 📁 `Controllers.gs` (Serveur — API) — *VIDE*
-
+### `js/ui-match-summary.js`
 | Fonction | Description |
 | :--- | :--- |
-| `ctrlGetMatchDetails` | *(à implémenter)* |
-| `ctrlJoinRide` / `ctrlLeaveRide` | *(à implémenter)* |
-| `ctrlDeleteVehicle` | *(à implémenter)* |
-| `ctrlLeaveWaitingList` / `ctrlJoinWaitingList` | *(à implémenter)* |
-| `ctrlRegisterVehicle` / `ctrlUpdateVehicle` | *(à implémenter)* |
-| `ctrlGetAdminMatches` / `ctrlCreateMatch` | *(à implémenter)* |
-| `ctrlToggleMatchLock` / `ctrlDeleteMatch` | *(à implémenter)* |
-| `ctrlGetWhatsAppSummary` | *(à implémenter)* |
+| `calculateAndRenderSummary(rides, waiting)` | Calcule les totaux, les places offertes/demandées et actualise les badges A/R. |
+| `openSummaryDetailsModal()` | Construit la liste nominative des joueurs (RDV vs direct, Aller puis Retour). |
+| `renderChipsList(containerId, list, chipClasses, emptyText)` | Génère des pastilles visuelles dans la synthèse. |
 
-## 📁 `Database.gs` (Serveur — Données) — *VIDE*
-
+### `js/ui-match-cards.js`
 | Fonction | Description |
 | :--- | :--- |
-| *(à implémenter)* | Accès Google Sheets (matchs, rides, waiting list). |
+| `createRideCardElement(ride, isLocked, waitingList)` | Construit le DOM d'une carte véhicule (en 2 colonnes Aller gauche / Retour droite). |
+| `createPassengerChip(rideId, name, direction, isLocked)` | Pastille passager avec bouton de retrait. |
+| `createFreeSeatChip(direction)` | Pastille en pointillés "Libre" pour les places disponibles. |
 
-## 📁 `Utils.gs` (Serveur — Utilitaires) — *VIDE*
-
+### `js/ui-match-render.js`
 | Fonction | Description |
 | :--- | :--- |
-| *(à implémenter)* | Helpers serveur (validation, formatage, sécurité token). |
+| `renderMatchView(data)` | Orchestre l'affichage complet du match, de la liste des voitures et de l'attente. |
+| `renderUserCurrentStatus(rides, waiting, isLocked)` | Affiche l'encart d'inscription personnelle de l'utilisateur connecté. |
+
+### `js/ui-match-actions.js`
+| Fonction | Description |
+| :--- | :--- |
+| `loadMatchDetails()` | Récupère les données du match via `ctrlGetMatchDetails`. |
+| `openEditRideModal(ride)` | Ouvre la modale de modification des places pour le conducteur. |
+| `handleJoinRide(rideId, direction, btn)` | Inscription d'un passager sur un trajet. |
+| `handleLeaveRide(rideId, playerName, direction, btn)` | Désinscription d'un passager. |
+| `handleDeleteVehicle(rideId, btn)` | Suppression d'un véhicule (bascule automatique des passagers en liste d'attente). |
+| `handleLeaveWaitingList(waitingId, btn)` | Sortie de la liste d'attente. |
+
+### `js/ui-admin.js`
+| Fonction | Description |
+| :--- | :--- |
+| `loadAdminDashboard()` | Charge tous les matchs pour le responsable (`ctrlGetAdminMatches`). |
+| `renderAdminMatches(matches)` | Génère les cartes d'administration avec actions (verrouillage, lien, WhatsApp, suppression). |
+
+### `js/app.js`
+| Événement | Description |
+| :--- | :--- |
+| `DOMContentLoaded` | Point d'entrée : vérifie la configuration de l'API, oriente vers la bonne vue et attache les écouteurs de formulaires et de boutons. |
+
+---
+
+## 📁 Fichiers Google Apps Script (`.gs`)
+
+### `Code.gs` (Routeur API)
+| Fonction | Description |
+| :--- | :--- |
+| `doPost(e)` / `doGet(e)` | Points d'entrée HTTP. Aiguille vers `handleApiRequest(e)` et retourne du JSON. |
+| `handleApiRequest(e)` | Parse la charge utile `{ action, args }`, initialise la DB et invoque le contrôleur cible. |
+| `createJsonResponse(data)` | Formate la réponse HTTP avec `ContentService.MimeType.JSON`. |
+
+### `Controllers.gs` (Contrôleurs Métier)
+| Fonction | Description |
+| :--- | :--- |
+| `ctrlVerifyAdminToken(token)` | Valide le jeton secret administrateur. |
+| `ctrlGetAdminMatches(adminToken)` | Retourne les rencontres enrichies des totaux de places et d'inscrits. |
+| `ctrlCreateMatch(adminToken, payload)` | Crée une nouvelle rencontre sportive. |
+| `ctrlToggleMatchLock(adminToken, matchId, isLocked)` | Verrouille/déverrouille les inscriptions. |
+| `ctrlDeleteMatch(adminToken, matchId)` | Supprime un match, ses véhicules et ses demandes associées. |
+| `ctrlGetWhatsAppSummary(adminToken, matchId, webAppUrl, authUser)` | Génère le texte formaté prêt à coller pour WhatsApp. |
+| `ctrlGetMatchDetails(matchId)` | Retourne les données d'un match (véhicules + liste d'attente). |
+| `ctrlRegisterVehicle(matchId, payload)` | Enregistre un véhicule (ou un statut "Je m'y rends seul"). |
+| `ctrlUpdateVehicle(matchId, rideId, playerName, payload)` | Met à jour les places d'un véhicule. |
+| `ctrlDeleteVehicle(matchId, rideId, playerName, adminToken)` | Supprime un véhicule avec bascule des passagers en attente. |
+| `ctrlJoinRide(matchId, rideId, playerName, direction)` | Ajoute un passager dans un véhicule (avec contrôles de capacité et cohérence liste d'attente). |
+| `ctrlLeaveRide(matchId, rideId, playerName, direction)` | Retire un passager d'un véhicule. |
+| `ctrlJoinWaitingList(matchId, playerName, needsOutward, needsReturn)` | Inscription en recherche de place. |
+| `ctrlLeaveWaitingList(matchId, waitingId, playerName, adminToken)` | Retrait de la liste d'attente. |
+
+### `Database.gs` (ORM Google Sheets)
+| Fonction | Description |
+| :--- | :--- |
+| `initDatabase()` / `syncSheetHeaders()` | Initialisation et auto-migration des feuilles `CONFIG`, `MATCHES`, `RIDES`, `WAITING_LIST`. |
+| `getTableRecords(sheetName)` | Récupère tous les enregistrements d'une feuille sous forme d'objets. |
+| `insertRecord(sheetName, record)` | Insère une nouvelle ligne dans une feuille. |
+| `updateRecord(sheetName, id, updates)` | Met à jour une ligne par son identifiant. |
+| `deleteRecord(sheetName, id)` / `deleteRecordsWhere()` | Suppression d'enregistrements. |
+| `getConfigValue(key)` / `setConfigValue(key, value)` | Lecture/écriture de paramètres clés-valeurs. |
+
+### `Utils.gs` (Utilitaires Serveur)
+| Fonction | Description |
+| :--- | :--- |
+| `withScriptLock(callback, timeoutMs)` | Exécute un bloc critique sous verrouillage concurrentiel `LockService`. |
+| `generateId(prefix)` | Génère un identifiant unique horodaté. |
+| `formatWhatsAppSummary(match, rides, waitingList, publicUrl)` | Formate le message récapitulatif WhatsApp. |
+| `responseSuccess(data)` / `responseError(message)` | Formate les réponses `{ success, data, error }`. |

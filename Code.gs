@@ -1,72 +1,118 @@
 /**
- * Point d'entrée de la Web App Google Apps Script.
+ * Point d'entrée API REST pour la Web App Google Apps Script.
+ * Répond en JSON aux requêtes du front-end hébergé sur GitHub Pages.
  */
 
 /**
- * Traite les requêtes HTTP GET et orchestre le routage vers Index.html.
+ * Traite les requêtes HTTP POST (méthode principale appelée par le site).
  */
-function doGet(e) {
-  const params = e ? e.parameter : {};
-  const adminToken = params.admin ? String(params.admin).trim() : null;
-  const matchId = params.m ? String(params.m).trim() : null;
-  // authuser : index du compte Google (0, 1, 2...) pour forcer le bon compte
-  // dans les navigateurs multi-comptes (évite l'écran de sélection / erreur Drive).
-  const authUser = params.authuser !== undefined && params.authuser !== null && params.authuser !== ''
-    ? String(params.authuser).trim()
-    : null;
-
-  // 1. Initialiser le classeur si les feuilles sont manquantes.
-  //    Encapsulé : une erreur d'init ne doit JAMAIS empêcher l'affichage de la page.
-  let initError = null;
-  try {
-    initDatabase();
-  } catch (err) {
-    initError = err.message;
-  }
-
-  // 2. Déterminer la route serveur
-  let currentRoute = 'NO_ACCESS';
-  let serverAdminToken = null;
-  try {
-    serverAdminToken = getConfigValue('ADMIN_TOKEN');
-  } catch (err) {
-    if (!initError) initError = err.message;
-  }
-
-  if (adminToken && serverAdminToken && adminToken === serverAdminToken) {
-    currentRoute = 'ADMIN';
-  } else if (matchId) {
-    currentRoute = 'MATCH';
-  }
-
-  // 3. Récupérer l'URL de la Web App de façon défensive (peut être null avant déploiement)
-  let webAppUrl = '';
-  try {
-    webAppUrl = ScriptApp.getService().getUrl() || '';
-  } catch (err) {
-    webAppUrl = '';
-  }
-
-  // 4. Préparer l'objet d'injection dans le template HTML
-  const template = HtmlService.createTemplateFromFile('Index');
-  template.serverRouting = {
-    route: currentRoute,
-    matchId: matchId,
-    adminToken: adminToken,
-    webAppUrl: webAppUrl,
-    authUser: authUser,
-    initError: initError
-  };
-
-  return template.evaluate()
-    .setTitle("Co'Voit' - Covoiturage Club")
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+function doPost(e) {
+  return handleApiRequest(e);
 }
 
 /**
- * Helper d'inclusion de fichiers partiels HTML/CSS/JS.
+ * Traite les requêtes HTTP GET (consultation ou test API).
  */
-function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+function doGet(e) {
+  if (e && e.parameter && e.parameter.action) {
+    return handleApiRequest(e);
+  }
+  return createJsonResponse(responseSuccess({ status: "API Co'Voit' opérationnelle", timestamp: new Date().toISOString() }));
+}
+
+/**
+ * Orchestrateur central des requêtes API JSON.
+ */
+function handleApiRequest(e) {
+  // 1. Initialiser le classeur si les feuilles sont manquantes
+  try {
+    initDatabase();
+  } catch (err) {
+    return createJsonResponse(responseError("Erreur d'initialisation de la base : " + err.message));
+  }
+
+  // 2. Extraire l'action et les arguments
+  let action = null;
+  let args = [];
+
+  try {
+    if (e && e.postData && e.postData.contents) {
+      const data = JSON.parse(e.postData.contents);
+      action = data.action;
+      args = Array.isArray(data.args) ? data.args : [];
+    } else if (e && e.parameter && e.parameter.action) {
+      action = e.parameter.action;
+      if (e.parameter.args) {
+        args = JSON.parse(e.parameter.args);
+      }
+    }
+  } catch (err) {
+    return createJsonResponse(responseError("Données de requête invalides : " + err.message));
+  }
+
+  if (!action) {
+    return createJsonResponse(responseSuccess({ status: "API Co'Voit' connectée", timestamp: new Date().toISOString() }));
+  }
+
+  // 3. Aiguillage vers les contrôleurs
+  try {
+    let result;
+    switch (action) {
+      case 'ctrlVerifyAdminToken':
+        result = ctrlVerifyAdminToken(args[0]);
+        break;
+      case 'ctrlGetAdminMatches':
+        result = ctrlGetAdminMatches(args[0]);
+        break;
+      case 'ctrlCreateMatch':
+        result = ctrlCreateMatch(args[0], args[1]);
+        break;
+      case 'ctrlToggleMatchLock':
+        result = ctrlToggleMatchLock(args[0], args[1], args[2]);
+        break;
+      case 'ctrlDeleteMatch':
+        result = ctrlDeleteMatch(args[0], args[1]);
+        break;
+      case 'ctrlGetWhatsAppSummary':
+        result = ctrlGetWhatsAppSummary(args[0], args[1], args[2], args[3]);
+        break;
+      case 'ctrlGetMatchDetails':
+        result = ctrlGetMatchDetails(args[0]);
+        break;
+      case 'ctrlRegisterVehicle':
+        result = ctrlRegisterVehicle(args[0], args[1]);
+        break;
+      case 'ctrlUpdateVehicle':
+        result = ctrlUpdateVehicle(args[0], args[1], args[2], args[3]);
+        break;
+      case 'ctrlDeleteVehicle':
+        result = ctrlDeleteVehicle(args[0], args[1], args[2], args[3]);
+        break;
+      case 'ctrlJoinRide':
+        result = ctrlJoinRide(args[0], args[1], args[2], args[3]);
+        break;
+      case 'ctrlLeaveRide':
+        result = ctrlLeaveRide(args[0], args[1], args[2], args[3]);
+        break;
+      case 'ctrlJoinWaitingList':
+        result = ctrlJoinWaitingList(args[0], args[1], args[2], args[3]);
+        break;
+      case 'ctrlLeaveWaitingList':
+        result = ctrlLeaveWaitingList(args[0], args[1], args[2], args[3]);
+        break;
+      default:
+        result = responseError("Action non reconnue : " + action);
+    }
+    return createJsonResponse(result);
+  } catch (err) {
+    return createJsonResponse(responseError(err.message));
+  }
+}
+
+/**
+ * Formate et retourne une réponse HTTP avec le type MIME JSON.
+ */
+function createJsonResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
 }
