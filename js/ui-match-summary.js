@@ -96,33 +96,27 @@ function calculateAndRenderSummary(rides, waiting) {
   const elOutRdv = document.getElementById('stat-outward-rdv-total');
   if (elOutRdv) elOutRdv.textContent = `${outwardRdvTotal} pers.`;
 
-  const elOutDirect = document.getElementById('stat-outward-direct-total');
-  if (elOutDirect) elOutDirect.textContent = `${outwardDirectTotal} pers.`;
+  const elOutDrivers = document.getElementById('stat-outward-drivers-count');
+  if (elOutDrivers) elOutDrivers.textContent = outwardRdvDrivers;
 
   const elOutSeats = document.getElementById('stat-outward-seats-detail');
-  if (elOutSeats) {
-    if (outwardSeats === 0 && outwardDemands === 0) {
-      elOutSeats.textContent = '0 pl. offerte';
-    } else {
-      elOutSeats.innerHTML = `${outwardSeats} pl. <span class="font-normal text-slate-500">(${outwardDemands} demandée${outwardDemands > 1 ? 's' : ''})</span>`;
-    }
-  }
+  if (elOutSeats) elOutSeats.textContent = outwardSeats;
+
+  const elOutDirect = document.getElementById('stat-outward-direct-total');
+  if (elOutDirect) elOutDirect.textContent = `${outwardDirectTotal} pers.`;
 
   // RETOUR
   const elRetRdv = document.getElementById('stat-return-rdv-total');
   if (elRetRdv) elRetRdv.textContent = `${returnRdvTotal} pers.`;
 
-  const elRetDirect = document.getElementById('stat-return-direct-total');
-  if (elRetDirect) elRetDirect.textContent = `${returnDirectTotal} pers.`;
+  const elRetDrivers = document.getElementById('stat-return-drivers-count');
+  if (elRetDrivers) elRetDrivers.textContent = returnRdvDrivers;
 
   const elRetSeats = document.getElementById('stat-return-seats-detail');
-  if (elRetSeats) {
-    if (returnSeats === 0 && returnDemands === 0) {
-      elRetSeats.textContent = '0 pl. offerte';
-    } else {
-      elRetSeats.innerHTML = `${returnSeats} pl. <span class="font-normal text-slate-500">(${returnDemands} demandée${returnDemands > 1 ? 's' : ''})</span>`;
-    }
-  }
+  if (elRetSeats) elRetSeats.textContent = returnSeats;
+
+  const elRetDirect = document.getElementById('stat-return-direct-total');
+  if (elRetDirect) elRetDirect.textContent = `${returnDirectTotal} pers.`;
 
   // Badges Bilan
   const badgeOutward = document.getElementById('badge-bilan-outward');
