@@ -30,11 +30,25 @@ function formatDateFrench(isoDate) {
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
+function formatShortTime(timeStr) {
+  if (!timeStr && timeStr !== 0) return '--:--';
+  const str = String(timeStr).trim();
+  const match = str.match(/(\d{1,2})[:hH](\d{2})/);
+  if (match) return `${match[1].padStart(2, '0')}:${match[2]}`;
+  if (str.includes('T')) {
+    const timePart = str.split('T')[1];
+    const timeMatch = timePart.match(/^(\d{1,2}):(\d{2})/);
+    if (timeMatch) return `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
+  }
+  return str;
+}
+
 function formatWhatsAppSummary(match, rides, waitingList, publicUrl) {
   const dateFormatted = formatDateFrench(match.event_date);
+  const timeFormatted = formatShortTime(match.departure_time);
   
   let text = `🚗 *COVOITURAGE : ${match.title.toUpperCase()}*\n`;
-  text += `📅 ${dateFormatted} | ⏰ RDV : ${match.departure_time}\n`;
+  text += `📅 ${dateFormatted} | ⏰ RDV : ${timeFormatted}\n`;
   text += `📍 ${match.meeting_place}\n\n`;
 
   // --- SECTION ALLER ---

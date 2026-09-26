@@ -20,14 +20,24 @@ function formatShortDate(dateStr) {
 function formatShortTime(timeStr) {
   if (!timeStr && timeStr !== 0) return '--:--';
 
-  // Cas 1 : chaîne "HH:MM" ou "HH:MM:SS"
-  const str = String(timeStr);
-  const match = str.match(/^(\d{1,2}):(\d{2})/);
+  const str = String(timeStr).trim();
+
+  // Cas 1 : Chaîne "HH:MM", "HHhMM" ou "HH:MM:SS"
+  const match = str.match(/(\d{1,2})[:hH](\d{2})/);
   if (match) {
     return `${match[1].padStart(2, '0')}:${match[2]}`;
   }
 
-  // Cas 2 : objet Date (Google Sheets renvoie souvent une date complète pour une heure)
+  // Cas 2 : Chaîne ISO avec "T" (ex: 1899-12-30T17:30:00)
+  if (str.includes('T')) {
+    const timePart = str.split('T')[1];
+    const timeMatch = timePart.match(/^(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      return `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
+    }
+  }
+
+  // Cas 3 : Objet Date
   const d = new Date(timeStr);
   if (!isNaN(d.getTime())) {
     const hh = String(d.getHours()).padStart(2, '0');
