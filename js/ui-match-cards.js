@@ -13,8 +13,36 @@ function createRideCardElement(ride, isLocked, waitingList) {
   const waiting = Array.isArray(waitingList) ? waitingList : [];
   const myWait = myName ? waiting.find(w => safeLower(w.player_name) === myName) : null;
   const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
-  const canJoinOutward = !myWait || toBool(myWait.needs_outward);
-  const canJoinReturn = !myWait || toBool(myWait.needs_return);
+
+  const allRides = AppState.currentMatchData?.rides || [];
+  const myDirect = myName ? allRides.find(r => safeLower(r.driver_name) === myName && toBool(r.is_direct)) : null;
+
+  let canJoinOutward = true;
+  let canJoinReturn = true;
+  let blockedReasonOutward = '';
+  let blockedReasonReturn = '';
+
+  if (myWait) {
+    if (!toBool(myWait.needs_outward)) {
+      canJoinOutward = false;
+      blockedReasonOutward = 'Recherche Retour uniquement';
+    }
+    if (!toBool(myWait.needs_return)) {
+      canJoinReturn = false;
+      blockedReasonReturn = 'Recherche Aller uniquement';
+    }
+  }
+
+  if (myDirect) {
+    if (toBool(myDirect.offers_outward)) {
+      canJoinOutward = false;
+      blockedReasonOutward = "Direct sur place à l'Aller";
+    }
+    if (toBool(myDirect.offers_return)) {
+      canJoinReturn = false;
+      blockedReasonReturn = 'Direct sur place au Retour';
+    }
+  }
 
   const outwardPass = Array.isArray(ride.outward_passengers) ? ride.outward_passengers : [];
   const returnPass = Array.isArray(ride.return_passengers) ? ride.return_passengers : [];
@@ -104,12 +132,19 @@ function createRideCardElement(ride, isLocked, waitingList) {
     if (actionContainer) {
       const isUserIn = myName && outwardPass.map(n => safeLower(n)).includes(myName);
       const isDriverHimself = myName && safeLower(ride.driver_name) === myName;
-      if (!isUserIn && !isDriverHimself && outwardPass.length < seatsOut && canJoinOutward) {
-        const joinBtn = document.createElement('button');
-        joinBtn.className = 'btn-tap w-full py-2 bg-blue-50/70 hover:bg-blue-100 text-blue-900 font-black rounded-lg text-xs border-2 border-blue-200 shadow-sm';
-        joinBtn.textContent = '+ Monter à l\'Aller';
-        joinBtn.onclick = () => handleJoinRide(ride.id, 'outward', joinBtn);
-        actionContainer.appendChild(joinBtn);
+      if (!isUserIn && !isDriverHimself && outwardPass.length < seatsOut) {
+        if (canJoinOutward) {
+          const joinBtn = document.createElement('button');
+          joinBtn.className = 'btn-tap w-full py-2 bg-blue-50/70 hover:bg-blue-100 text-blue-900 font-black rounded-lg text-xs border-2 border-blue-200 shadow-sm';
+          joinBtn.textContent = '+ Monter à l\'Aller';
+          joinBtn.onclick = () => handleJoinRide(ride.id, 'outward', joinBtn);
+          actionContainer.appendChild(joinBtn);
+        } else if (blockedReasonOutward) {
+          const badge = document.createElement('div');
+          badge.className = 'text-[10px] font-bold text-slate-400 bg-slate-100 py-1.5 px-2 rounded-lg text-center border border-slate-200';
+          badge.textContent = `🚫 ${blockedReasonOutward}`;
+          actionContainer.appendChild(badge);
+        }
       }
     }
   }
@@ -128,12 +163,19 @@ function createRideCardElement(ride, isLocked, waitingList) {
     if (actionContainer) {
       const isUserIn = myName && returnPass.map(n => safeLower(n)).includes(myName);
       const isDriverHimself = myName && safeLower(ride.driver_name) === myName;
-      if (!isUserIn && !isDriverHimself && returnPass.length < seatsRet && canJoinReturn) {
-        const joinBtn = document.createElement('button');
-        joinBtn.className = 'btn-tap w-full py-2 bg-orange-50/70 hover:bg-orange-100 text-orange-900 font-black rounded-lg text-xs border-2 border-orange-300 shadow-sm';
-        joinBtn.textContent = '+ Monter au Retour';
-        joinBtn.onclick = () => handleJoinRide(ride.id, 'return', joinBtn);
-        actionContainer.appendChild(joinBtn);
+      if (!isUserIn && !isDriverHimself && returnPass.length < seatsRet) {
+        if (canJoinReturn) {
+          const joinBtn = document.createElement('button');
+          joinBtn.className = 'btn-tap w-full py-2 bg-orange-50/70 hover:bg-orange-100 text-orange-900 font-black rounded-lg text-xs border-2 border-orange-300 shadow-sm';
+          joinBtn.textContent = '+ Monter au Retour';
+          joinBtn.onclick = () => handleJoinRide(ride.id, 'return', joinBtn);
+          actionContainer.appendChild(joinBtn);
+        } else if (blockedReasonReturn) {
+          const badge = document.createElement('div');
+          badge.className = 'text-[10px] font-bold text-slate-400 bg-slate-100 py-1.5 px-2 rounded-lg text-center border border-slate-200';
+          badge.textContent = `🚫 ${blockedReasonReturn}`;
+          actionContainer.appendChild(badge);
+        }
       }
     }
   }

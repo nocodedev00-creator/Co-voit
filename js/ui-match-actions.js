@@ -40,25 +40,33 @@ async function handleJoinRide(rideId, direction, btn) {
     return;
   }
 
+  const myName = safeLower(AppState.currentUser);
+  const waitingList = AppState.currentMatchData?.waiting_list || [];
+  const myWait = waitingList.find(w => safeLower(w.player_name) === myName);
+  const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
+
+  if (myWait) {
+    if (direction === 'outward' && !toBool(myWait.needs_outward)) {
+      return showToast("Vous cherchez une place uniquement pour le retour : impossible de réserver l'aller.", 'error');
+    }
+    if (direction === 'return' && !toBool(myWait.needs_return)) {
+      return showToast("Vous cherchez une place uniquement pour l'aller : impossible de réserver le retour.", 'error');
+    }
+  }
+
+  const allRides = AppState.currentMatchData?.rides || [];
+  const myDirect = allRides.find(r => safeLower(r.driver_name) === myName && toBool(r.is_direct));
+  if (myDirect) {
+    if (direction === 'outward' && toBool(myDirect.offers_outward)) {
+      return showToast("Vous êtes noté direct sur place pour l'aller : impossible de réserver une place au RDV.", 'error');
+    }
+    if (direction === 'return' && toBool(myDirect.offers_return)) {
+      return showToast("Vous êtes noté direct sur place pour le retour : impossible de réserver une place au RDV.", 'error');
+    }
+  }
+
   setButtonLoading(btn, true, 'Inscription...');
   try {
-    const myDirect = (AppState.currentMatchData?.rides || []).find(r => safeLower(r.driver_name) === safeLower(AppState.currentUser) && r.is_direct);
-    if (myDirect) {
-      if (direction === 'outward' && myDirect.offers_outward) {
-        if (!myDirect.offers_return) {
-          try { await callServer('ctrlDeleteVehicle', AppState.matchId, myDirect.id, AppState.currentUser, AppState.adminToken); } catch(e){}
-        } else {
-          try { await callServer('ctrlUpdateVehicle', AppState.matchId, myDirect.id, AppState.currentUser, { ...myDirect, offers_outward: false, adminToken: AppState.adminToken }); } catch(e){}
-        }
-      } else if (direction === 'return' && myDirect.offers_return) {
-        if (!myDirect.offers_outward) {
-          try { await callServer('ctrlDeleteVehicle', AppState.matchId, myDirect.id, AppState.currentUser, AppState.adminToken); } catch(e){}
-        } else {
-          try { await callServer('ctrlUpdateVehicle', AppState.matchId, myDirect.id, AppState.currentUser, { ...myDirect, offers_return: false, adminToken: AppState.adminToken }); } catch(e){}
-        }
-      }
-    }
-
     await callServer('ctrlJoinRide', AppState.matchId, rideId, AppState.currentUser, direction);
     showToast('Vous avez rejoint le véhicule !', 'success');
     loadMatchDetails();

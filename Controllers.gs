@@ -365,6 +365,19 @@ function ctrlJoinRide(matchId, rideId, playerName, direction) {
         }
       }
 
+      // Restriction direct : si le joueur est noté direct sur place pour ce trajet, il ne peut pas rejoindre un véhicule
+      const userDirectRide = rides.find(r => r.match_id === matchId && safeLower(r.driver_name) === safeLower(cleanName) && r.is_direct);
+      if (userDirectRide) {
+        const offersOut = userDirectRide.offers_outward === true || userDirectRide.offers_outward === 'true';
+        const offersRet = userDirectRide.offers_return === true || userDirectRide.offers_return === 'true';
+        if (direction === 'outward' && offersOut) {
+          return responseError("Vous êtes déjà noté direct sur place pour l'aller : impossible de rejoindre l'aller.");
+        }
+        if (direction === 'return' && offersRet) {
+          return responseError("Vous êtes déjà noté direct sur place pour le retour : impossible de rejoindre le retour.");
+        }
+      }
+
 
       const passengers = direction === 'outward' ? (ride.outward_passengers || []) : (ride.return_passengers || []);
       const seatCapacity = direction === 'outward' 
