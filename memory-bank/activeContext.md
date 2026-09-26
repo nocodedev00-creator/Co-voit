@@ -4,6 +4,7 @@
 Migration de l'application Co'Voit' d'une Web App monolithique Google Apps Script vers une **architecture découplée** :
 - **Front-end statique autonome sur GitHub Pages** : supprime définitivement les erreurs *"Google Drive - impossible d'ouvrir le fichier"* et les conflits de sessions multi-comptes sur smartphone.
 - **Backend Google Apps Script en mode API REST** : conserve votre classeur Google Sheets, vos données existantes et les 13 fonctions métier de `Controllers.gs`.
+- **Correctif d'heure de RDV (Bug 00:09)** : Google Sheets convertissait l'heure en date du 30/12/1899, ce qui générait "00:09" (heure de Paris en 1899). Résolu dans Database.gs, Utils.gs et js/ui-utils.js.
 
 ## Détail des Changements Appliqués
 1. **`.gitignore`** : créé et configuré (fichiers OS, IDE, logs, secrets).
