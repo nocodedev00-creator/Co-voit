@@ -17,8 +17,8 @@ Migration complète et réussie de l'application Co'Voit' vers une **architectur
   - **Règle automatique "Je cherche"** : si un joueur s'inscrit en attente sur l'Aller seul, son Retour est automatiquement enregistré en "Je m'y rends seul" (direct sur place), et inversement. S'il coche les deux, il est en recherche A/R.
   - **Tableau de bord visuel enrichi** :
     - Suppression de la carte doublon "Je m'y rends seul" en haut.
-    - Colonnes Aller (bleu) et Retour (orange) clarifiées : total de personnes partant au RDV, sous-détail des places (offertes vs demandées) avec badge de solde dynamique (`+X libre`, `Complet (0)`, `Manque X`), et total des personnes se rendant directement sur place sans passer par le RDV.
-  - **Architecture & Règles GEMINI** : tous les modules JavaScript sont strictement `< 300` lignes (`js/app.js`: 295, `js/ui-match-summary.js`: 248, `js/ui-match-render.js`: 204).
+    - Colonnes Aller (bleu) et Retour (orange) clarifiées : total de personnes partant au RDV, sous-détail précis sans surcharge (`• Conducteurs : X` et `• Places dispo : X`), badge de solde dynamique (`+X libre`, `Complet (0)`, `Manque X`), et total des personnes se rendant directement sur place.
+  - **Architecture & Règles GEMINI** : tous les modules JavaScript sont strictement `< 300` lignes (`js/app.js`: 296, `js/ui-match-summary.js`: 242, `js/ui-match-render.js`: 204).
 
 ## Documentation
 - `README.md` disponible à la racine du projet pour guider le coach et les développeurs.
