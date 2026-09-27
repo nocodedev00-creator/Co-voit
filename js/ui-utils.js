@@ -103,9 +103,28 @@ function setUsername(name) {
 }
 
 function updateUserDisplay() {
+  const headerBar = document.getElementById('user-header-bar');
+  const icon = document.getElementById('user-header-icon');
+  const text = document.getElementById('user-header-text');
+  const btnChange = document.getElementById('btn-change-username');
   const display = document.getElementById('display-current-user');
-  if (display) {
-    display.textContent = AppState.currentUser || 'Visiteur';
+
+  if (AppState.currentUser) {
+    if (display) display.textContent = AppState.currentUser;
+    if (icon) icon.textContent = '👤';
+    if (text) text.innerHTML = `Connecté en tant que <strong class="text-blue-300 font-black">${escapeHtml(AppState.currentUser)}</strong>`;
+    if (btnChange) btnChange.classList.remove('hidden');
+    if (headerBar) {
+      headerBar.className = 'bg-slate-900 text-white px-4 py-2.5 rounded-2xl flex items-center justify-between shadow-sm border border-slate-800 text-xs';
+    }
+  } else {
+    if (display) display.textContent = 'Visiteur';
+    if (icon) icon.textContent = '👋';
+    if (text) text.textContent = 'Indiquez votre présence ci-dessous en 1 clic';
+    if (btnChange) btnChange.classList.add('hidden');
+    if (headerBar) {
+      headerBar.className = 'bg-blue-900 text-white px-4 py-2.5 rounded-2xl flex items-center justify-center gap-2 shadow-sm border border-blue-800 text-xs font-bold text-center';
+    }
   }
 }
 

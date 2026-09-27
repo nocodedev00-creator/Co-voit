@@ -146,6 +146,41 @@ function calculateAndRenderSummary(rides, waiting) {
       badgeReturn.textContent = `Manque ${Math.abs(soldeReturn)}`;
     }
   }
+
+  // Verdict Global en Langage Clair
+  const verdictEl = document.getElementById('global-balance-verdict');
+  if (verdictEl) {
+    if (uniqueParticipants.size === 0) {
+      verdictEl.className = 'p-2.5 rounded-xl bg-slate-100 text-slate-600 border border-slate-200 text-xs font-bold text-center';
+      verdictEl.innerHTML = `<span>⏳</span> <span>En attente des premières réponses des joueurs</span>`;
+    } else if (outwardRdvTotal === 0 && returnRdvTotal === 0) {
+      verdictEl.className = 'p-2.5 rounded-xl bg-indigo-50 text-indigo-900 border border-indigo-200 text-xs font-black text-center';
+      verdictEl.innerHTML = `<span>📍</span> <span>Tous les joueurs déclarés vont directement sur place</span>`;
+    } else if (soldeOutward >= 0 && soldeReturn >= 0) {
+      const rab = Math.min(soldeOutward, soldeReturn);
+      const rabText = rab > 0 ? ` (+${rab} libre${rab > 1 ? 's' : ''})` : '';
+      verdictEl.className = 'p-2.5 rounded-xl bg-emerald-50 text-emerald-950 border-2 border-emerald-300 text-xs font-black text-center shadow-xs';
+      verdictEl.innerHTML = `
+        <div class="flex items-center justify-center gap-1.5 text-emerald-900">
+          <span>🟢</span> <span>Assez de places au RDV pour tout le monde !${rabText}</span>
+        </div>
+        <div class="text-[10px] font-semibold text-emerald-700 pt-0.5">Organisation libre sur le parking ou dans les voitures ci-dessous</div>
+      `;
+    } else {
+      const manqueOut = soldeOutward < 0 ? Math.abs(soldeOutward) : 0;
+      const manqueRet = soldeReturn < 0 ? Math.abs(soldeReturn) : 0;
+      const details = [];
+      if (manqueOut > 0) details.push(`Aller : ${manqueOut} pl.`);
+      if (manqueRet > 0) details.push(`Retour : ${manqueRet} pl.`);
+      verdictEl.className = 'p-2.5 rounded-xl bg-rose-50 text-rose-950 border-2 border-rose-300 text-xs font-black text-center shadow-xs';
+      verdictEl.innerHTML = `
+        <div class="flex items-center justify-center gap-1.5 text-rose-900">
+          <span>🔴</span> <span>Attention : manque de places au RDV (${details.join(' • ')})</span>
+        </div>
+        <div class="text-[10px] font-semibold text-rose-700 pt-0.5">Il nous faut un conducteur supplémentaire !</div>
+      `;
+    }
+  }
 }
 
 function openSummaryDetailsModal() {

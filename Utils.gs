@@ -75,7 +75,7 @@ function formatWhatsAppSummary(match, rides, waitingList, publicUrl) {
 
   const outwardWaiting = waitingList.filter(w => w.needs_outward).map(w => w.player_name);
   if (outwardWaiting.length > 0) {
-    text += `⚠️ *En attente de place Aller :* ${outwardWaiting.join(', ')}\n`;
+    text += `👥 *Présents au RDV à véhiculer (Aller) :* ${outwardWaiting.join(', ')}\n`;
   }
 
   text += `\n`;
@@ -98,7 +98,7 @@ function formatWhatsAppSummary(match, rides, waitingList, publicUrl) {
 
   const returnWaiting = waitingList.filter(w => w.needs_return).map(w => w.player_name);
   if (returnWaiting.length > 0) {
-    text += `⚠️ *En attente de place Retour :* ${returnWaiting.join(', ')}\n`;
+    text += `👥 *Présents au RDV à véhiculer (Retour) :* ${returnWaiting.join(', ')}\n`;
   }
 
   text += `\n🔗 *Inscription :* ${publicUrl}`;
