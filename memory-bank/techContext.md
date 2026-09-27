@@ -9,6 +9,10 @@
   - `doPost(e)` / `doGet(e)` avec `ContentService` (format JSON)
   - `SpreadsheetApp` (persistance Google Sheets avec ORM léger et auto-migration)
   - `LockService` (concurrence & intégrité des transactions)
+- **Outil de Synchronisation Back-end** : Google Clasp v3.3.0
+  - CLI officiel Google (`@google/clasp`)
+  - Permet le déploiement et la mise à jour automatique des fichiers `.gs` sans copier-coller
+  - Commande clé : `npx @google/clasp push`
 - **Stockage Local** : `localStorage` (mémorisation de l'identité joueur `covoid_username`)
 
 ## Architecture Découplée (Front Statique + Back API)
@@ -21,7 +25,9 @@
 
 ```
 Co-voit/
-├── .gitignore               # Exclusions Git (fichiers système, IDE, logs, secrets)
+├── .clasp.json              # Configuration Clasp (Script ID Google Apps Script)
+├── .claspignore             # Whitelist Clasp (seuls les 4 .gs et appsscript.json sont synchronisés)
+├── .gitignore               # Exclusions Git (fichiers système, IDE, logs, secrets, .clasp*.json)
 ├── index.html               # Page d'accueil SPA autonome pour GitHub Pages
 ├── styles.css               # Feuilles de styles CSS mobiles et animations
 ├── js/                      # Modules JavaScript (< 300 lignes chacun)
@@ -39,6 +45,6 @@ Co-voit/
 ├── Controllers.gs           # 13 endpoints métier (sécurisés par LockService)
 ├── Database.gs              # ORM léger sur Google Sheets
 ├── Utils.gs                 # Utilitaires serveur & synthèse WhatsApp
-├── appscript.json           # Manifeste Apps Script
+├── appsscript.json          # Manifeste officiel Apps Script (reconnu par Clasp)
 └── memory-bank/             # Mémoire persistante du projet
 ```

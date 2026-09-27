@@ -117,14 +117,6 @@ Ce document trace l'historique des problèmes techniques complexes et les soluti
 - **Fix Heure 00:09** : Google Sheets stockait les heures en objets Date fixés au 30/12/1899 (entraînant 00:09 avec le fuseau de Paris en 1899). Résolu par extraction explicite de `HH:mm` dans `Database.gs`, `Utils.gs` et `js/ui-utils.js`.
 - **Accueil** : Ajout du formulaire de saisie `ADMIN_TOKEN` sur la page d'accueil pour accès Coach direct sans devoir modifier l'URL.
 
-
-
-
-
-
-
-
-
-
-
-
+## 2026-09-27 : Configuration Google Clasp pour synchronisation automatique Apps Script
+- **Problème** : Copier-coller manuels des 4 fichiers `.gs` dans l'éditeur Google Sheets à chaque mise à jour.
+- **Solution** : Configuration de Google Clasp (`.clasp.json` lié au script `1yyBMcI-...`, `.claspignore` filtrant uniquement les 5 fichiers backend, `appsscript.json`). Règle système intégrée : `npx @google/clasp push` systématique après chaque modification backend.

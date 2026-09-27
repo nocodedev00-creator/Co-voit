@@ -1,8 +1,8 @@
 # État d'Avancement du Projet
 
 ## Statut Global
-✅ **Projet 100% Opérationnel & Validé en Production**
-L'application Co'Voit' tourne désormais sur une architecture découplée GitHub Pages + API Google Apps Script. Les plantages multi-comptes sur smartphone sont définitivement éliminés et le fonctionnement a été validé sur mobile par l'utilisateur.
+✅ **Projet 100% Opérationnel & Synchronisation Clasp Validée en Direct**
+L'application Co'Voit' tourne sur une architecture découplée GitHub Pages + API Google Apps Script. Le workflow Clasp est entièrement opérationnel et la première synchronisation directe a été validée avec succès sur Google Apps Script.
 
 ## Ce qui fonctionne
 - ✅ **Hébergement GitHub Pages** : `https://nocodedev00-creator.github.io/Co-voit/` (chargement instantané).
@@ -15,10 +15,9 @@ L'application Co'Voit' tourne désormais sur une architecture découplée GitHub
 - ✅ **Documentation** : `README.md` complet d'administration et d'utilisation rédigé à la racine.
 - ✅ **Actions repositionnées sous la fiche logistique** : accès direct à "Je conduis", "Je cherche", "Direct sur place".
 - ✅ **Règle "Je cherche" automatique** : inscription Aller seul => Retour en direct automatique, et inversement.
-- ✅ **Bilan A/R haute visibilité** : répartition claire au RDV (total personnes, places offertes vs demandées, badge solde) vs Direct sur place, carte doublon supprimée.
-- ✅ **Anti-cache & versioning des scripts** : balises meta no-cache et query strings `?v=20260926_4` pour garantir le rechargement immédiat sur smartphone.
-- ✅ **Verrouillage de réservation sélective** : interdiction absolue de réserver une voiture sur le retour si on ne cherche que l'aller (et inversement) avec badge d'information `🚫` et double validation front/back.
-- ✅ **Masquage intelligent du conteneur d'actions** : `#match-actions-container` disparaît dès que le joueur a répondu (remplacé par sa carte de statut personnelle) et réapparaît s'il annule.
-- ✅ **Condition d'accès aux voitures** : impossible de cliquer sur "+ Monter" sans avoir d'abord cliqué sur "Je cherche" (liste d'attente).
-
-
+- ✅ **Bilan A/R haute visibilité** : répartition claire au RDV vs Direct sur place.
+- ✅ **Verrouillage de réservation sélective** : interdiction absolue de réserver une voiture si on ne cherche pas pour ce sens.
+- ✅ **Masquage intelligent du conteneur d'actions** : `#match-actions-container` masqué dès l'inscription complétée.
+- ✅ **Synchronisation Clasp en direct validée** : premier push réussi de 5 fichiers (`Code.gs`, `Controllers.gs`, `Database.gs`, `Utils.gs`, `appsscript.json`).
+- ✅ **Configuration Clasp sécurisée** : `.clasp.json`, `.claspignore` (filtrage strict 5 fichiers), `appsscript.json`, `.gitignore` sécurisé.
+- ✅ **Règle de synchronisation systématique** : intégrée dans `memory-bank/systemPatterns.md`.

@@ -1,29 +1,19 @@
 # Contexte Actif
 
 ## Travail Réalisé & Validé
-Migration complète et réussie de l'application Co'Voit' vers une **architecture découplée** :
-- **Front-end statique autonome sur GitHub Pages** (`https://nocodedev00-creator.github.io/Co-voit/`) : suppression définitive des erreurs *"Google Drive - impossible d'ouvrir le fichier"* et des conflits multi-comptes sur smartphone.
-- **Backend Google Apps Script en mode API REST JSON** : conservation du classeur Google Sheets et des règles métier.
-- **Résolution du bug de l'heure (00:09)** : neutralisation définitive de l'anomalie 1899 de Google Sheets :
-  - `Database.gs` : lecture via `getDisplayValues()` pour extraire directement le texte brut affiché ("17:30") et écriture forcée en texte via préfixe apostrophe (`'`).
-  - `Utils.gs` & `js/ui-utils.js` : `formatShortTime` durci pour refuser les dates pures sans heure (comme "1899-12-30") et renvoyer `--:--` au lieu de calculer un fuseau erroné.
-- **Protection Anti-Double-Clic & Accélération Latence** :
-  - `js/api.js` : registre `inFlightRequests` qui intercepte et fusionne tout clic répété vers la même action en vol + barre de progression globale (`#global-network-loader`).
-  - `js/app.js` & `js/ui-admin.js` : `setButtonLoading` (désactivation immédiate + spinner + texte de chargement) sur tous les formulaires (création de match, véhicule, trajet direct, liste d'attente, actions admin).
-  - `Database.gs` : mise en cache `CacheService` des structures de tables, token admin et vérifications d'en-têtes pour éliminer ~15 requêtes RPC Google Sheets redondantes par appel (gain de latence de ~70%).
-- **Écran d'accueil interactif** : ajout d'un champ de connexion Coach pour entrer son `ADMIN_TOKEN` en un clic sans paramètre d'URL.
-- **Refonte UI & Expérience Match (Demande Utilisateur)** :
-  - **Repositionnement des actions** : bloc `#match-actions-container` et bandeau verrouillé déplacés directement sous la fiche logistique du match (avant le bilan et les voitures).
-  - **Règle automatique "Je cherche"** : si un joueur s'inscrit en attente sur l'Aller seul, son Retour est automatiquement enregistré en "Je m'y rends seul" (direct sur place), et inversement. S'il coche les deux, il est en recherche A/R.
-  - **Tableau de bord visuel enrichi** :
-    - Suppression de la carte doublon "Je m'y rends seul" en haut.
-    - Colonnes Aller (bleu) et Retour (orange) clarifiées : total de personnes partant au RDV, sous-détail précis sans surcharge (`• Conducteurs : X` et `• Places dispo : X`), badge de solde dynamique (`+X libre`, `Complet (0)`, `Manque X`), et total des personnes se rendant directement sur place.
-    - **Calcul fidèle au sondage brut** : comptage indépendant de l'assignation dans les voitures (Sets dédupliqués de conducteurs RDV + demandeurs liste d'attente/passagers) permettant un bilan 100% exact même si personne n'est encore monté dans une voiture spécifique.
-    - **Inversion de l'enregistrement de l'inscription partielle** : `ctrlRegisterVehicle` puis `ctrlJoinWaitingList` pour préserver l'inscription en attente.
-    - **Masquage automatique de `#match-actions-container`** : dès qu'un joueur a répondu (conducteur, direct, ou liste d'attente), les 3 gros boutons d'action disparaissent pour laisser place à la carte de statut personnelle avec options d'annulation/modification. S'il annule sa participation, les boutons réapparaissent.
-    - **Obligation stricte de passer par "Je cherche" pour monter en voiture** : aucun utilisateur ne peut cliquer sur "+ Monter" s'il n'a pas préalablement choisi "Je cherche" pour le trajet concerné. S'il n'a pas répondu, un badge explicatif l'invite à cliquer d'abord sur "Je cherche". Double validation front (`handleJoinRide`) et back (`ctrlJoinRide`).
-  - **Architecture & Règles GEMINI** : tous les modules JavaScript sont strictement `< 300` lignes (`js/app.js`: 296, `js/ui-match-summary.js`: 244, `js/ui-match-render.js`: 207, `js/ui-match-cards.js`: 221, `js/ui-match-actions.js`: 121).
+1. **Migration Découplée Réussie & Opérationnelle** :
+   - Front-end statique autonome sur GitHub Pages (`https://nocodedev00-creator.github.io/Co-voit/`).
+   - Back-end Google Apps Script en mode API REST JSON.
+   - Refonte UI match : masquage de `#match-actions-container` une fois inscrit, restriction stricte de réservation de véhicules aux seuls inscrits "Je cherche", et calcul indépendant du bilan A/R.
 
-## Documentation
-- `README.md` disponible à la racine du projet pour guider le coach et les développeurs.
+2. **Synchronisation Automatique Google Apps Script via Clasp (100% Opérationnelle)** :
+   - **Authentification** : Compte propriétaire `no.code.dev.00@gmail.com` connecté et validé dans Clasp.
+   - **Configuration** : Fichier `.clasp.json` lié au script Google Sheets (`1yyBMcI-Hznjg-V8FL3hp_EtZgCJNfNH06cvhUz5WSkL6pSyB3F5s4Yly`).
+   - **Filtrage Strict** : Fichier `.claspignore` configuré et vérifié (seuls les 4 fichiers `.gs` et `appsscript.json` sont envoyés à Google, les fichiers web GitHub Pages sont ignorés).
+   - **Sécurité** : `.gitignore` protège `.clasp.json` et `.clasprc.json`.
+   - **Validation en Production** : Commande `npx @google/clasp push -f` exécutée avec succès (5 fichiers synchronisés en direct sur Google Apps Script).
+   - **Règle Système** : Gravée dans `systemPatterns.md` : tout agent ou développeur doit exécuter systématiquement `npx @google/clasp push` dès qu'un fichier `.gs` ou le manifest est modifié.
 
+## Rappel pour le Déploiement Web App
+- Le code source dans l'éditeur Google Apps Script est maintenant synchronisé en temps réel.
+- Si une mise à jour d'un `.gs` modifie le comportement de la Web App en production, penser à mettre à jour la version du déploiement (soit via `clasp deploy`, soit via l'interface Google Apps Script : *Déployer > Gérer les déploiements > Modifier > Nouvelle version*).
