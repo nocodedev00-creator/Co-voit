@@ -13,7 +13,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Styles Spécifiques & Overrides -->
-  <link rel="stylesheet" href="styles.css?v=20260927_1">
+  <link rel="stylesheet" href="styles.css?v=20260927_2">
 </head>
 <body class="h-full bg-slate-100 flex flex-col font-sans">
 
@@ -206,14 +206,23 @@
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </span>
           </div>
-        <!-- VERDICT GLOBAL EN LANGAGE CLAIR -->
-        <div id="global-balance-verdict" class="p-3 rounded-xl border text-xs font-black text-center shadow-xs transition-all bg-slate-100 text-slate-600 border-slate-200">
-          Calcul de la situation des places...
         </div>
 
         <div class="bg-slate-100 p-2 rounded-xl border border-slate-200 text-center">
           <span class="text-slate-500 font-semibold text-[10px] uppercase mr-1.5">Joueurs ayant répondu :</span>
           <strong id="stat-total-respondents" class="text-slate-900 text-xs font-black">0 joueur(s)</strong>
+        </div>
+
+        <!-- VERDICT GLOBAL SCINDÉ ALLER / RETOUR -->
+        <div id="global-balance-verdict" class="grid grid-cols-2 gap-3 pt-1">
+          <div id="verdict-outward" class="p-2.5 rounded-xl border text-xs text-center shadow-xs transition-all bg-slate-100 text-slate-500 border-slate-200">
+            <div class="font-black text-xs">➡️ ALLER</div>
+            <div class="text-[10px] text-slate-400 font-semibold pt-0.5">Calcul en cours...</div>
+          </div>
+          <div id="verdict-return" class="p-2.5 rounded-xl border text-xs text-center shadow-xs transition-all bg-slate-100 text-slate-500 border-slate-200">
+            <div class="font-black text-xs">⬅️ RETOUR</div>
+            <div class="text-[10px] text-slate-400 font-semibold pt-0.5">Calcul en cours...</div>
+          </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3 pt-1">
@@ -624,16 +633,16 @@
   <div id="toast-container" class="fixed bottom-4 left-0 right-0 z-50 flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
 
   <!-- SCRIPTS CLIENT MODULAIRES -->
-  <script src="js/config.js?v=20260927_1"></script>
-  <script src="js/state.js?v=20260927_1"></script>
-  <script src="js/api.js?v=20260927_1"></script>
-  <script src="js/ui-utils.js?v=20260927_1"></script>
-  <script src="js/ui-match-summary.js?v=20260927_1"></script>
-  <script src="js/ui-match-cards.js?v=20260927_1"></script>
-  <script src="js/ui-match-render.js?v=20260927_1"></script>
-  <script src="js/ui-match-actions.js?v=20260927_1"></script>
-  <script src="js/ui-admin.js?v=20260927_1"></script>
-  <script src="js/app.js?v=20260927_1"></script>
+  <script src="js/config.js?v=20260927_2"></script>
+  <script src="js/state.js?v=20260927_2"></script>
+  <script src="js/api.js?v=20260927_2"></script>
+  <script src="js/ui-utils.js?v=20260927_2"></script>
+  <script src="js/ui-match-summary.js?v=20260927_2"></script>
+  <script src="js/ui-match-cards.js?v=20260927_2"></script>
+  <script src="js/ui-match-render.js?v=20260927_2"></script>
+  <script src="js/ui-match-actions.js?v=20260927_2"></script>
+  <script src="js/ui-admin.js?v=20260927_2"></script>
+  <script src="js/app.js?v=20260927_2"></script>
 
 </body>
 </html>

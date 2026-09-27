@@ -53,7 +53,7 @@ function renderMatchView(data) {
   waitingContainer.innerHTML = '';
 
   if (waiting.length === 0) {
-    waitingContainer.innerHTML = `<span class="text-xs text-slate-500 font-bold italic">Aucun joueur au RDV à véhiculer</span>`;
+    waitingContainer.innerHTML = `<span class="text-xs text-amber-900/70 font-bold italic">Personne en attente de véhicule</span>`;
   } else {
     waiting.forEach(item => {
       const chip = document.createElement('div');
@@ -61,7 +61,7 @@ function renderMatchView(data) {
       const myNameSafe = safeLower(AppState.currentUser);
       const isMe = myNameSafe && pNameSafe === myNameSafe;
       
-      chip.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black shadow-xs ${isMe ? 'bg-blue-600 text-white border-2 border-blue-800' : 'bg-white text-blue-950 border border-blue-300'}`;
+      chip.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black shadow-sm ${isMe ? 'bg-amber-400 text-amber-950 border-2 border-amber-600' : 'bg-white text-amber-950 border border-amber-300'}`;
 
       const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
       const nOut = toBool(item.needs_outward);
@@ -73,7 +73,7 @@ function renderMatchView(data) {
 
       chip.innerHTML = `
         <span>${escapeHtml(item.player_name)} (${needTag})</span>
-        ${isMe || AppState.adminToken ? `<button class="btn-remove-waiting text-blue-800 hover:text-rose-600 font-black ml-1 text-sm leading-none" data-id="${item.id}">&times;</button>` : ''}
+        ${isMe || AppState.adminToken ? `<button class="btn-remove-waiting text-amber-800 hover:text-rose-600 font-black ml-1 text-sm leading-none" data-id="${item.id}">&times;</button>` : ''}
       `;
 
       const removeBtn = chip.querySelector('.btn-remove-waiting');
@@ -121,7 +121,7 @@ function renderUserCurrentStatus(rides, waiting, isLocked) {
   } else if (myOutPassengerRide) {
     outLabel = `Passager de <strong>${escapeHtml(myOutPassengerRide.driver_name)}</strong>`;
   } else if (myWait && toBool(myWait.needs_outward)) {
-    outLabel = 'Présent au RDV (place demandée) 🙋';
+    outLabel = 'En recherche de place 🙋';
   }
 
   // Statut RETOUR
@@ -135,7 +135,7 @@ function renderUserCurrentStatus(rides, waiting, isLocked) {
   } else if (myRetPassengerRide) {
     retLabel = `Passager de <strong>${escapeHtml(myRetPassengerRide.driver_name)}</strong>`;
   } else if (myWait && toBool(myWait.needs_return)) {
-    retLabel = 'Présent au RDV (place demandée) 🙋';
+    retLabel = 'En recherche de place 🙋';
   }
 
   // Si aucune participation
@@ -145,8 +145,6 @@ function renderUserCurrentStatus(rides, waiting, isLocked) {
     return;
   }
 
-  const isWaitingOnly = Boolean(myWait && !myOutPassengerRide && !myRetPassengerRide && !myRide);
-
   statusCard.classList.remove('hidden');
   document.getElementById('match-actions-container')?.classList.add('hidden');
   descEl.innerHTML = `
@@ -154,12 +152,6 @@ function renderUserCurrentStatus(rides, waiting, isLocked) {
       <div>➡️ <strong>Aller :</strong> ${outLabel || '<span class="text-slate-400 font-semibold italic">Non inscrit</span>'}</div>
       <div>⬅️ <strong>Retour :</strong> ${retLabel || '<span class="text-slate-400 font-semibold italic">Non inscrit</span>'}</div>
     </div>
-    ${isWaitingOnly ? `
-      <div class="mt-2.5 p-2.5 bg-blue-100/90 border border-blue-300 rounded-xl text-[11px] text-blue-950 font-bold flex items-start gap-2 shadow-xs">
-        <span class="text-sm">✅</span>
-        <span><strong>Inscription au RDV confirmée !</strong> Vous pourrez vous répartir sur le parking le jour J, ou réserver un siège dès maintenant ci-dessous.</span>
-      </div>
-    ` : ''}
   `;
 
   if (isLocked) return;

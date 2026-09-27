@@ -1,8 +1,8 @@
 # État d'Avancement du Projet
 
 ## Statut Global
-✅ **Projet 100% Opérationnel, Ergonomie Épurée & Clasp Actif**
-L'application Co'Voit' tourne sur une architecture découplée GitHub Pages + API Google Apps Script. L'ergonomie a été optimisée pour une compréhension instantanée (philosophie club : inscription au RDV suffisante, répartition sur le parking le jour J ou réservation optionnelle en amont).
+✅ **Projet 100% Opérationnel & Synchronisation Clasp Validée en Direct**
+L'application Co'Voit' tourne sur une architecture découplée GitHub Pages + API Google Apps Script. Le workflow Clasp est entièrement opérationnel, synchronisé et redéployé en version de production @29.
 
 ## Ce qui fonctionne
 - ✅ **Hébergement GitHub Pages** : `https://nocodedev00-creator.github.io/Co-voit/` (chargement instantané).
@@ -11,12 +11,15 @@ L'application Co'Voit' tourne sur une architecture découplée GitHub Pages + AP
 - ✅ **Modules JavaScript ES6** (`js/`) : architecture modulaire propre (< 300 lignes par fichier).
 - ✅ **Passerelle réseau REST** (`js/api.js`) : `fetch()` POST vers Google Apps Script sans blocage CORS.
 - ✅ **API Google Apps Script** (`Code.gs`) : `doPost(e)` / `doGet(e)` répondant en JSON pur via `ContentService`.
-- ✅ **Métier & Persistance** (`Controllers.gs`, `Database.gs`, `Utils.gs`) : Google Sheets synchronisé en direct via Clasp.
+- ✅ **Métier & Persistance** (`Controllers.gs`, `Database.gs`, `Utils.gs`) : Google Sheets synchronisé en direct.
+- ✅ **Documentation** : `README.md` complet d'administration et d'utilisation rédigé à la racine.
 - ✅ **Actions repositionnées sous la fiche logistique** : accès direct à "Je conduis", "Je cherche", "Direct sur place".
 - ✅ **Règle "Je cherche" automatique** : inscription Aller seul => Retour en direct automatique, et inversement.
-- ✅ **Bandeau de Verdict Global en Langage Clair** : lecture immédiate du solde en 0.5s (`🟢 Assez de places` / `🔴 Manque X places`).
-- ✅ **Section "Joueurs au RDV à véhiculer"** : dédramatisation positive de la liste d'attente (philosophie parking).
-- ✅ **Bandeau d'accueil chaleureux** : suppression du statut intimidant "Visiteur", remplacé par une invitation bienveillante.
-- ✅ **Valorisation visuelle des places réservées** : affichage émeraude `✅ [Prénom] (Moi)` et boutons `+ Réserver ma place`.
-- ✅ **Synchronisation Clasp en direct validée** : push automatique des modifications `.gs`.
-- ✅ **Anti-cache `v=20260927_1`** : garanti sur mobile.
+- ✅ **Bilan A/R haute visibilité** : répartition claire au RDV vs Direct sur place.
+- ✅ **Verdict Global scindé en 2 colonnes** : alignement parfait Aller / Retour avec le reste de l'interface.
+- ✅ **Verrouillage de réservation sélective** : interdiction absolue de réserver une voiture si on ne cherche pas pour ce sens.
+- ✅ **Masquage intelligent du conteneur d'actions** : `#match-actions-container` masqué dès l'inscription complétée.
+- ✅ **Synchronisation Clasp en direct validée** : push réussi de 5 fichiers (`Code.gs`, `Controllers.gs`, `Database.gs`, `Utils.gs`, `appsscript.json`).
+- ✅ **Redéploiement Clasp en production** : version @29 déployée directement sur l'identifiant existant.
+- ✅ **Configuration Clasp sécurisée** : `.clasp.json`, `.claspignore` (filtrage strict 5 fichiers), `appsscript.json`, `.gitignore` sécurisé.
+- ✅ **Règle de synchronisation systématique** : intégrée dans `memory-bank/systemPatterns.md`.

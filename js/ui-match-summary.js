@@ -147,39 +147,37 @@ function calculateAndRenderSummary(rides, waiting) {
     }
   }
 
-  // Verdict Global en Langage Clair
-  const verdictEl = document.getElementById('global-balance-verdict');
-  if (verdictEl) {
-    if (uniqueParticipants.size === 0) {
-      verdictEl.className = 'p-2.5 rounded-xl bg-slate-100 text-slate-600 border border-slate-200 text-xs font-bold text-center';
-      verdictEl.innerHTML = `<span>⏳</span> <span>En attente des premières réponses des joueurs</span>`;
-    } else if (outwardRdvTotal === 0 && returnRdvTotal === 0) {
-      verdictEl.className = 'p-2.5 rounded-xl bg-indigo-50 text-indigo-900 border border-indigo-200 text-xs font-black text-center';
-      verdictEl.innerHTML = `<span>📍</span> <span>Tous les joueurs déclarés vont directement sur place</span>`;
-    } else if (soldeOutward >= 0 && soldeReturn >= 0) {
-      const rab = Math.min(soldeOutward, soldeReturn);
-      const rabText = rab > 0 ? ` (+${rab} libre${rab > 1 ? 's' : ''})` : '';
-      verdictEl.className = 'p-2.5 rounded-xl bg-emerald-50 text-emerald-950 border-2 border-emerald-300 text-xs font-black text-center shadow-xs';
-      verdictEl.innerHTML = `
-        <div class="flex items-center justify-center gap-1.5 text-emerald-900">
-          <span>🟢</span> <span>Assez de places au RDV pour tout le monde !${rabText}</span>
-        </div>
-        <div class="text-[10px] font-semibold text-emerald-700 pt-0.5">Organisation libre sur le parking ou dans les voitures ci-dessous</div>
-      `;
-    } else {
-      const manqueOut = soldeOutward < 0 ? Math.abs(soldeOutward) : 0;
-      const manqueRet = soldeReturn < 0 ? Math.abs(soldeReturn) : 0;
-      const details = [];
-      if (manqueOut > 0) details.push(`Aller : ${manqueOut} pl.`);
-      if (manqueRet > 0) details.push(`Retour : ${manqueRet} pl.`);
-      verdictEl.className = 'p-2.5 rounded-xl bg-rose-50 text-rose-950 border-2 border-rose-300 text-xs font-black text-center shadow-xs';
-      verdictEl.innerHTML = `
-        <div class="flex items-center justify-center gap-1.5 text-rose-900">
-          <span>🔴</span> <span>Attention : manque de places au RDV (${details.join(' • ')})</span>
-        </div>
-        <div class="text-[10px] font-semibold text-rose-700 pt-0.5">Il nous faut un conducteur supplémentaire !</div>
-      `;
-    }
+  // Verdicts Scindés Aller & Retour
+  renderVerdictCard(document.getElementById('verdict-outward'), 'ALLER', '➡️', uniqueParticipants.size, outwardRdvTotal, outwardSeats, soldeOutward);
+  renderVerdictCard(document.getElementById('verdict-return'), 'RETOUR', '⬅️', uniqueParticipants.size, returnRdvTotal, returnSeats, soldeReturn);
+}
+
+function renderVerdictCard(el, dirLabel, icon, participantsCount, rdvTotal, seats, solde) {
+  if (!el) return;
+  if (participantsCount === 0) {
+    el.className = 'p-2 rounded-xl bg-slate-100 text-slate-500 border border-slate-200 text-xs font-bold text-center';
+    el.innerHTML = `<div class="font-black text-slate-700">${icon} ${dirLabel}</div><div class="text-[10px] text-slate-400 font-semibold pt-0.5">En attente</div>`;
+  } else if (rdvTotal === 0 && seats === 0) {
+    el.className = 'p-2 rounded-xl bg-slate-100 text-slate-700 border border-slate-300 text-xs font-bold text-center';
+    el.innerHTML = `<div class="font-black text-slate-800">${icon} ${dirLabel}</div><div class="text-[10px] text-slate-500 font-semibold pt-0.5">Direct uniquement (0 RDV)</div>`;
+  } else if (solde >= 0) {
+    const rabText = solde > 0 ? `+${solde} libre${solde > 1 ? 's' : ''}` : 'Complet';
+    el.className = 'p-2 rounded-xl bg-emerald-50 text-emerald-950 border-2 border-emerald-300 text-xs font-black text-center shadow-xs';
+    el.innerHTML = `
+      <div class="flex items-center justify-center gap-1 text-emerald-900 text-[11px] leading-tight font-black">
+        <span>🟢</span> <span>${dirLabel} : Assez de places !</span>
+      </div>
+      <div class="text-[10px] font-bold text-emerald-700 pt-0.5">${rabText} • Parking</div>
+    `;
+  } else {
+    const manque = Math.abs(solde);
+    el.className = 'p-2 rounded-xl bg-rose-50 text-rose-950 border-2 border-rose-300 text-xs font-black text-center shadow-xs';
+    el.innerHTML = `
+      <div class="flex items-center justify-center gap-1 text-rose-900 text-[11px] leading-tight font-black">
+        <span>🔴</span> <span>${dirLabel} : Manque ${manque} pl. !</span>
+      </div>
+      <div class="text-[10px] font-bold text-rose-700 pt-0.5">Conducteur requis</div>
+    `;
   }
 }
 

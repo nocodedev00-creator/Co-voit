@@ -34,7 +34,7 @@ function createRideCardElement(ride, isLocked, waitingList) {
     } else if (myName && isDriver) {
       blockedReasonOutward = 'Conducteur';
     } else {
-      blockedReasonOutward = 'Choisir "Je cherche" en haut pour monter';
+      blockedReasonOutward = 'Choisir "Je cherche" pour monter';
     }
   }
 
@@ -46,7 +46,7 @@ function createRideCardElement(ride, isLocked, waitingList) {
     } else if (myName && isDriver) {
       blockedReasonReturn = 'Conducteur';
     } else {
-      blockedReasonReturn = 'Choisir "Je cherche" en haut pour monter';
+      blockedReasonReturn = 'Choisir "Je cherche" pour monter';
     }
   }
 
@@ -141,14 +141,14 @@ function createRideCardElement(ride, isLocked, waitingList) {
       if (!isUserIn && !isDriverHimself && outwardPass.length < seatsOut) {
         if (canJoinOutward) {
           const joinBtn = document.createElement('button');
-          joinBtn.className = 'btn-tap w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg text-xs shadow-sm';
-          joinBtn.textContent = '+ Réserver ma place (Aller)';
+          joinBtn.className = 'btn-tap w-full py-2 bg-blue-50/70 hover:bg-blue-100 text-blue-900 font-black rounded-lg text-xs border-2 border-blue-200 shadow-sm';
+          joinBtn.textContent = '+ Monter à l\'Aller';
           joinBtn.onclick = () => handleJoinRide(ride.id, 'outward', joinBtn);
           actionContainer.appendChild(joinBtn);
         } else if (blockedReasonOutward) {
           const badge = document.createElement('div');
           badge.className = 'text-[10px] font-bold text-slate-400 bg-slate-100 py-1.5 px-2 rounded-lg text-center border border-slate-200';
-          badge.textContent = `👉 ${blockedReasonOutward}`;
+          badge.textContent = `🚫 ${blockedReasonOutward}`;
           actionContainer.appendChild(badge);
         }
       }
@@ -172,14 +172,14 @@ function createRideCardElement(ride, isLocked, waitingList) {
       if (!isUserIn && !isDriverHimself && returnPass.length < seatsRet) {
         if (canJoinReturn) {
           const joinBtn = document.createElement('button');
-          joinBtn.className = 'btn-tap w-full py-2 bg-orange-600 hover:bg-orange-700 text-white font-black rounded-lg text-xs shadow-sm';
-          joinBtn.textContent = '+ Réserver ma place (Retour)';
+          joinBtn.className = 'btn-tap w-full py-2 bg-orange-50/70 hover:bg-orange-100 text-orange-900 font-black rounded-lg text-xs border-2 border-orange-300 shadow-sm';
+          joinBtn.textContent = '+ Monter au Retour';
           joinBtn.onclick = () => handleJoinRide(ride.id, 'return', joinBtn);
           actionContainer.appendChild(joinBtn);
         } else if (blockedReasonReturn) {
           const badge = document.createElement('div');
           badge.className = 'text-[10px] font-bold text-slate-400 bg-slate-100 py-1.5 px-2 rounded-lg text-center border border-slate-200';
-          badge.textContent = `👉 ${blockedReasonReturn}`;
+          badge.textContent = `🚫 ${blockedReasonReturn}`;
           actionContainer.appendChild(badge);
         }
       }
@@ -195,9 +195,9 @@ function createPassengerChip(rideId, name, direction, isLocked) {
   const isMe = myName && safeLower(name) === myName;
   const canRemove = (isMe || Boolean(AppState.adminToken)) && !isLocked;
 
-  chip.className = `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black shadow-sm ${isMe ? 'bg-emerald-600 text-white border-2 border-emerald-700' : 'bg-white border-2 border-slate-300 text-slate-800'}`;
+  chip.className = `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black shadow-sm ${isMe ? 'bg-blue-600 text-white' : 'bg-white border-2 border-slate-300 text-slate-800'}`;
   chip.innerHTML = `
-    <span>${isMe ? '✅ ' : '👤 '}${escapeHtml(name)}${isMe ? ' (Moi)' : ''}</span>
+    <span>👤 ${escapeHtml(name)}</span>
     ${canRemove ? `<button class="btn-remove-pass opacity-75 hover:opacity-100 font-black ml-0.5">&times;</button>` : ''}
   `;
 
