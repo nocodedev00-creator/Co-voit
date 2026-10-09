@@ -61,6 +61,7 @@ function calculateAndRenderSummary(rides, waiting) {
     }
   });
 
+  let totalExtraParticipants = 0;
   // Liste d'attente : ajouter les demandeurs (1 personne = 1 entrée dans le Set)
   // + compteur de places supplémentaires pour les accompagnateurs
   waiting.forEach(w => {
@@ -69,6 +70,7 @@ function calculateAndRenderSummary(rides, waiting) {
       if (wLower) {
         uniqueParticipants.add(wLower);
         const extra = Math.max(0, parseInt(w.extra_passengers, 10) || 0);
+        totalExtraParticipants += extra;
         if (toBool(w.needs_outward)) {
           outwardRdvSeekers.add(wLower);
           outwardExtraDemands += extra; // places supplémentaires pour accompagnateurs
@@ -81,12 +83,12 @@ function calculateAndRenderSummary(rides, waiting) {
     }
   });
 
-  // Au RDV = conducteurs au RDV + demandeurs de places au RDV (personnes, sans les accompagnateurs)
+  // Au RDV = conducteurs au RDV + demandeurs de places au RDV + accompagnateurs
   const outwardRdvPeople = new Set([...outwardRdvDrivers, ...outwardRdvSeekers]);
   const returnRdvPeople = new Set([...returnRdvDrivers, ...returnRdvSeekers]);
 
-  const outwardRdvTotal = outwardRdvPeople.size;
-  const returnRdvTotal = returnRdvPeople.size;
+  const outwardRdvTotal = outwardRdvPeople.size + outwardExtraDemands;
+  const returnRdvTotal = returnRdvPeople.size + returnExtraDemands;
 
   // Demandes réelles = personnes en attente (Set) + leurs accompagnateurs (extra)
   // Les passagers déjà dans une voiture occupent des sièges → déjà déduits via outwardSeats
@@ -104,7 +106,7 @@ function calculateAndRenderSummary(rides, waiting) {
   const returnDirectTotal = returnDirectParticipants.size;
 
   const totalRespEl = document.getElementById('stat-total-respondents');
-  if (totalRespEl) totalRespEl.textContent = `${uniqueParticipants.size} joueur(s)`;
+  if (totalRespEl) totalRespEl.textContent = `${uniqueParticipants.size + totalExtraParticipants} inscrit(s)`;
 
   // ALLER
   const elOutRdv = document.getElementById('stat-outward-rdv-total');

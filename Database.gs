@@ -29,15 +29,13 @@ function getSpreadsheet() {
  * Vérifie et ajoute les colonnes manquantes dans une feuille existante (Auto-migration).
  */
 function syncSheetHeaders(sheetName, expectedHeaders) {
-  const cache = CacheService.getScriptCache();
-  const cacheKey = 'SYNCED_' + sheetName;
-  if (cache.get(cacheKey) === 'true') return;
-
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName(sheetName);
   if (!sheet || sheet.getLastRow() === 0) return;
 
-  const currentHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const lastCol = sheet.getLastColumn();
+  if (lastCol === 0) return;
+  const currentHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
   expectedHeaders.forEach(h => {
     if (!currentHeaders.includes(h)) {
       const newColIndex = sheet.getLastColumn() + 1;
@@ -45,13 +43,9 @@ function syncSheetHeaders(sheetName, expectedHeaders) {
       currentHeaders.push(h);
     }
   });
-  cache.put(cacheKey, 'true', 21600);
 }
 
 function initDatabase() {
-  const cache = CacheService.getScriptCache();
-  if (cache.get('DB_INIT') === 'true') return;
-
   const ss = getSpreadsheet();
 
   Object.keys(DB_SCHEMA).forEach(tableKey => {
@@ -191,6 +185,10 @@ function getTableRecords(sheetName) {
       if (record.seats_return === undefined || record.seats_return === '') {
         record.seats_return = record.seats_total || 0;
       }
+    }
+
+    if (sheetName === DB_SCHEMA.WAITING_LIST.sheetName) {
+      record.extra_passengers = Math.max(0, parseInt(record.extra_passengers, 10) || 0);
     }
 
     records.push(record);
