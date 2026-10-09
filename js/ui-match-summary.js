@@ -11,8 +11,12 @@ function calculateAndRenderSummary(rides, waiting) {
 
   const outwardRdvDrivers = new Set();
   const returnRdvDrivers = new Set();
+  // Seekers = personnes (noms uniques) ayant besoin d'une place RDV
   const outwardRdvSeekers = new Set();
   const returnRdvSeekers = new Set();
+  // Demands = nombre RÉEL de places demandées (1 personne + ses accompagnateurs)
+  let outwardExtraDemands = 0;
+  let returnExtraDemands = 0;
 
   const outwardDirectParticipants = new Set();
   const returnDirectParticipants = new Set();
@@ -57,35 +61,37 @@ function calculateAndRenderSummary(rides, waiting) {
     }
   });
 
-  // Prise en compte de tous ceux qui ont répondu au sondage "Je cherche" (liste d'attente)
+  // Liste d'attente : ajouter les demandeurs (1 personne = 1 entrée dans le Set)
+  // + compteur de places supplémentaires pour les accompagnateurs
   waiting.forEach(w => {
     if (w && w.player_name) {
       const wLower = safeLower(w.player_name);
       if (wLower) {
         uniqueParticipants.add(wLower);
-        const extra = Number(w.extra_passengers) || 0;
-        for (let i = 1; i <= extra; i++) uniqueParticipants.add(`${wLower} (+${i})`);
+        const extra = Math.max(0, parseInt(w.extra_passengers, 10) || 0);
         if (toBool(w.needs_outward)) {
           outwardRdvSeekers.add(wLower);
-          for (let i = 1; i <= extra; i++) outwardRdvSeekers.add(`${wLower} (+${i})`);
+          outwardExtraDemands += extra; // places supplémentaires pour accompagnateurs
         }
         if (toBool(w.needs_return)) {
           returnRdvSeekers.add(wLower);
-          for (let i = 1; i <= extra; i++) returnRdvSeekers.add(`${wLower} (+${i})`);
+          returnExtraDemands += extra;
         }
       }
     }
   });
 
-  // Au RDV = tous les conducteurs au RDV + toutes les personnes cherchant/occupant une place au RDV
+  // Au RDV = conducteurs au RDV + demandeurs de places au RDV (personnes, sans les accompagnateurs)
   const outwardRdvPeople = new Set([...outwardRdvDrivers, ...outwardRdvSeekers]);
   const returnRdvPeople = new Set([...returnRdvDrivers, ...returnRdvSeekers]);
 
   const outwardRdvTotal = outwardRdvPeople.size;
   const returnRdvTotal = returnRdvPeople.size;
 
-  const outwardDemands = outwardRdvSeekers.size;
-  const returnDemands = returnRdvSeekers.size;
+  // Demandes réelles = personnes en attente (Set) + leurs accompagnateurs (extra)
+  // Les passagers déjà dans une voiture occupent des sièges → déjà déduits via outwardSeats
+  const outwardDemands = outwardRdvSeekers.size + outwardExtraDemands;
+  const returnDemands = returnRdvSeekers.size + returnExtraDemands;
 
   const soldeOutward = outwardSeats - outwardDemands;
   const soldeReturn = returnSeats - returnDemands;
