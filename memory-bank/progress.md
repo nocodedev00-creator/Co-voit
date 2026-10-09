@@ -15,6 +15,7 @@ L'application Co'Voit' tourne sur une architecture découplée GitHub Pages + AP
 - ✅ **Documentation** : `README.md` complet d'administration et d'utilisation rédigé à la racine.
 - ✅ **Actions repositionnées sous la fiche logistique** : accès direct à "Je conduis", "Je cherche", "Direct sur place".
 - ✅ **Gestion des Accompagnateurs (Non Véhiculés)** : possibilité d'ajouter de 1 à 3 accompagnateurs lors de la recherche de place, décomptés fidèlement dans le solde de places.
+- ✅ **Bouton d'identité rapide dans l'en-tête** : permet de changer de prénom en 1 clic directement depuis la fiche match.
 - ✅ **Règle "Je cherche" automatique** : inscription Aller seul => Retour en direct automatique, et inversement.
 - ✅ **Bilan A/R haute visibilité** : répartition claire au RDV vs Direct sur place.
 - ✅ **Verdict Global scindé en 2 colonnes** : alignement parfait Aller / Retour avec le reste de l'interface.
