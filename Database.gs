@@ -72,7 +72,6 @@ function initDatabase() {
     const generatedToken = (Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10)).toUpperCase();
     setConfigValue('ADMIN_TOKEN', generatedToken);
   }
-  cache.put('DB_INIT', 'true', 21600);
 }
 
 function getConfigValue(key) {
