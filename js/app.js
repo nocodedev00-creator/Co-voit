@@ -68,18 +68,22 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.onclick = () => ['modal-create-match','modal-whatsapp','modal-add-car','modal-waiting','modal-summary-details'].forEach(closeModal);
   });
 
-  const btnAdminRefresh = document.getElementById('btn-admin-refresh');
-  if (btnAdminRefresh) btnAdminRefresh.onclick = loadAdminDashboard;
-  const btnPlayerRefresh = document.getElementById('btn-player-refresh');
-  if (btnPlayerRefresh) btnPlayerRefresh.onclick = loadMatchDetails;
-
-  const btnChangeUser = document.getElementById('btn-change-username');
-  if (btnChangeUser) btnChangeUser.onclick = () => {
+  const openChangeUserModal = () => {
     document.getElementById('input-identity-name').value = AppState.currentUser || '';
     document.getElementById('identity-known-block').classList.add('hidden');
     document.getElementById('identity-unknown-block').classList.remove('hidden');
     openModal('modal-identity');
+    setTimeout(() => document.getElementById('input-identity-name')?.focus(), 100);
   };
+
+  const btnAdminRefresh = document.getElementById('btn-admin-refresh');
+  if (btnAdminRefresh) btnAdminRefresh.onclick = loadAdminDashboard;
+
+  const btnPlayerChangeUser = document.getElementById('btn-player-change-user') || document.getElementById('btn-player-refresh');
+  if (btnPlayerChangeUser) btnPlayerChangeUser.onclick = openChangeUserModal;
+
+  const btnChangeUser = document.getElementById('btn-change-username');
+  if (btnChangeUser) btnChangeUser.onclick = openChangeUserModal;
 
   // --- GESTION ADMIN : CRÉER UN MATCH ---
   const btnOpenCreate = document.getElementById('btn-open-create-match');

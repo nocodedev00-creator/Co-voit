@@ -107,6 +107,10 @@ function updateUserDisplay() {
   if (display) {
     display.textContent = AppState.currentUser || 'Visiteur';
   }
+  const headerUser = document.getElementById('player-header-username');
+  if (headerUser) {
+    headerUser.textContent = AppState.currentUser || 'Changer';
+  }
 }
 
 /**

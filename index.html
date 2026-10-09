@@ -13,7 +13,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Styles Spécifiques & Overrides -->
-  <link rel="stylesheet" href="styles.css?v=20261009_2">
+  <link rel="stylesheet" href="styles.css?v=20261009_3">
 </head>
 <body class="h-full bg-slate-100 flex flex-col font-sans">
 
@@ -150,10 +150,9 @@
             </span>
             <h1 id="match-title-display" class="text-base font-black text-slate-900 truncate">Chargement...</h1>
           </div>
-          <button id="btn-player-refresh" class="btn-tap p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 border border-slate-200 shrink-0" title="Actualiser">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+          <button id="btn-player-change-user" class="btn-tap px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 border border-slate-300 shrink-0 flex items-center gap-1.5 text-xs font-bold transition-all shadow-xs" title="Changer de prénom">
+            <span class="text-xs">👤</span>
+            <span id="player-header-username" class="max-w-[100px] truncate text-[11px] font-black text-slate-800">Mon prénom</span>
           </button>
         </div>
 
@@ -644,16 +643,16 @@
   <div id="toast-container" class="fixed bottom-4 left-0 right-0 z-50 flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
 
   <!-- SCRIPTS CLIENT MODULAIRES -->
-  <script src="js/config.js?v=20261009_2"></script>
-  <script src="js/state.js?v=20261009_2"></script>
-  <script src="js/api.js?v=20261009_2"></script>
-  <script src="js/ui-utils.js?v=20261009_2"></script>
-  <script src="js/ui-match-summary.js?v=20261009_2"></script>
-  <script src="js/ui-match-cards.js?v=20261009_2"></script>
-  <script src="js/ui-match-render.js?v=20261009_2"></script>
-  <script src="js/ui-match-actions.js?v=20261009_2"></script>
-  <script src="js/ui-admin.js?v=20261009_2"></script>
-  <script src="js/app.js?v=20261009_2"></script>
+  <script src="js/config.js?v=20261009_3"></script>
+  <script src="js/state.js?v=20261009_3"></script>
+  <script src="js/api.js?v=20261009_3"></script>
+  <script src="js/ui-utils.js?v=20261009_3"></script>
+  <script src="js/ui-match-summary.js?v=20261009_3"></script>
+  <script src="js/ui-match-cards.js?v=20261009_3"></script>
+  <script src="js/ui-match-render.js?v=20261009_3"></script>
+  <script src="js/ui-match-actions.js?v=20261009_3"></script>
+  <script src="js/ui-admin.js?v=20261009_3"></script>
+  <script src="js/app.js?v=20261009_3"></script>
 
 </body>
 </html>
