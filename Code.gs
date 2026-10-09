@@ -95,7 +95,7 @@ function handleApiRequest(e) {
         result = ctrlLeaveRide(args[0], args[1], args[2], args[3]);
         break;
       case 'ctrlJoinWaitingList':
-        result = ctrlJoinWaitingList(args[0], args[1], args[2], args[3]);
+        result = ctrlJoinWaitingList(args[0], args[1], args[2], args[3], args[4]);
         break;
       case 'ctrlLeaveWaitingList':
         result = ctrlLeaveWaitingList(args[0], args[1], args[2], args[3]);
