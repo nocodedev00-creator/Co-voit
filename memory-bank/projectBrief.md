@@ -25,8 +25,9 @@ L'objectif est de créer une application **Web (Google Apps Script Web App)** ca
 - **Partage** : Copier le lien joueur, générer la synthèse WhatsApp.
 - **Statistiques** : Nombre de voitures, places A/R, joueurs sans place.
 
-## Stack Technique (Prévisionnelle)
-- **Langage** : JavaScript (V8) côté serveur (Google Apps Script) + HTML/CSS/JS côté client.
-- **Interface** : SPA HTML avec Tailwind CSS (classes utilitaires).
-- **Données** : Google Sheets (via `SpreadsheetApp`).
-- **Services Externes** : Google Apps Script Web App, `google.script.run` pour la communication client/serveur.
+## Stack Technique & Architecture
+- **Front-end** : SPA HTML5 + Tailwind CSS hébergée sur **GitHub Pages** (accès public immédiat sans compte Google).
+- **Back-end** : Google Apps Script en mode **API REST JSON** (`doPost`/`doGet` avec `ContentService`).
+- **Base de données** : Google Sheets (via `SpreadsheetApp` avec couche ORM légère et auto-migration).
+- **Communication** : Requêtes HTTP `fetch()` POST au format `text/plain` pour contourner les prévols CORS.
+- **Déploiement** : Synchronisation CLI automatique via **Google Clasp**.

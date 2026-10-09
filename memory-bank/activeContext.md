@@ -1,17 +1,18 @@
 # Contexte Actif
 
 ## Travail Réalisé & Validé
-1. **Migration Découplée Réussie & Opérationnelle** :
-   - Front-end statique autonome sur GitHub Pages (`https://nocodedev00-creator.github.io/Co-voit/`).
-   - Back-end Google Apps Script en mode API REST JSON.
-   - Refonte UI match : masquage de `#match-actions-container` une fois inscrit, restriction stricte de réservation de véhicules aux seuls inscrits "Je cherche", et calcul indépendant du bilan A/R.
+1. **Gestion des Accompagnateurs (Non Véhiculés) Opérationnelle** :
+   - Formulaire "Je cherche une place" enrichi d'un sélecteur d'accompagnants (0 à 3 accompagnateurs supplémentaires).
+   - Schéma `WAITING_LIST` complété avec `extra_passengers` (auto-migration via `syncSheetHeaders()`).
+   - Calculs logistiques réels : les accompagnateurs sont décomptés fidèlement dans les soldes de places et les totaux au RDV.
+   - Réservation solidaire : vérification de la capacité globale du véhicule lors du choix "+ Monter", réservation et désistement synchronisés pour tout le groupe.
+   - Affichage visuel clair : pastilles d'attente `Prénom +X (Aller-Ret)`, récapitulatif détaillé `Prénom (+X pers.)`, et export WhatsApp avec mention `(+X)`.
 
-2. **Scission du Verdict Global Aller / Retour (Uniformisation UI)** :
-   - `#global-balance-verdict` scindé en 2 colonnes (`grid grid-cols-2 gap-3 pt-1`) avec `#verdict-outward` et `#verdict-return`.
-   - Rendu distinct et lisible pour chaque sens (Aller et Retour) : affichage du statut vert (+X libres • Parking) ou rouge (Manque X pl. • Conducteur requis).
-   - `js/ui-match-summary.js` factorisé et maintenu à 276 lignes (< 300 lignes).
+2. **Architecture & Refactoring Watchdog** :
+   - Fichiers JS strictement sous la barre des 300 lignes : `app.js` allégé à 241 lignes grâce au transfert des gestionnaires de formulaires dans `ui-match-actions.js` (194 lignes). `ui-match-summary.js` maintenu à 288 lignes.
+   - Nettoyage de `decisionLog.md` (< 50 lignes) et actualisation de `projectBrief.md` & `functionMap.md`.
 
-3. **Déploiement Automatisé Clasp (100% Opérationnel)** :
-   - Synchronisation `npx @google/clasp push -f` validée (5 fichiers).
-   - Déploiement en production exécuté automatiquement via `npx @google/clasp deploy -i AKfycbxZwHKbXJTho2bmDe6Zxy_hq0DmRtkRP3MQYCYXMLwqrITAa1Ee5GPjMCCQfw7joKtgyQ` (version @29 active sans changer l'URL Web App).
-   - Cache buster mis à jour en `?v=20260927_2` sur `index.html`.
+3. **Déploiement Automatisé Clasp & GitHub Pages** :
+   - Synchronisation `npx @google/clasp push -f` validée (5 fichiers backend).
+   - Déploiement en production exécuté via `npx @google/clasp deploy` (**version @31** active).
+   - Cache buster mis à jour en `?v=20261009_1` sur `index.html`.

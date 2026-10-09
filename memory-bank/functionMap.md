@@ -36,6 +36,7 @@ Ce document recense les fonctions clés du projet pour faciliter la maintenance 
 | Fonction | Description |
 | :--- | :--- |
 | `calculateAndRenderSummary(rides, waiting)` | Calcule les totaux, les places offertes/demandées et actualise les badges A/R. |
+| `renderVerdictCard(el, dirLabel, icon, participantsCount, rdvTotal, seats, solde)` | Génère le rendu visuel du bilan Aller ou Retour (Assez de places / Manque / Direct). |
 | `openSummaryDetailsModal()` | Construit la liste nominative des joueurs (RDV vs direct, Aller puis Retour). |
 | `renderChipsList(containerId, list, chipClasses, emptyText)` | Génère des pastilles visuelles dans la synthèse. |
 
@@ -57,8 +58,11 @@ Ce document recense les fonctions clés du projet pour faciliter la maintenance 
 | :--- | :--- |
 | `loadMatchDetails()` | Récupère les données du match via `ctrlGetMatchDetails`. |
 | `openEditRideModal(ride)` | Ouvre la modale de modification des places pour le conducteur. |
-| `handleJoinRide(rideId, direction, btn)` | Inscription d'un passager sur un trajet. |
-| `handleLeaveRide(rideId, playerName, direction, btn)` | Désinscription d'un passager. |
+| `openWaitingListModal()` | Ouvre et préremplit la modale "Je cherche" (nom + accompagnants). |
+| `updateWaitingHint()` | Actualise le bandeau d'explication selon les cases cochées A/R. |
+| `handleWaitingFormSubmit(e)` | Valide et enregistre la recherche de place avec accompagnateurs. |
+| `handleJoinRide(rideId, direction, btn)` | Inscription d'un passager sur un trajet (gestion des accompagnateurs). |
+| `handleLeaveRide(rideId, playerName, direction, btn)` | Désinscription d'un passager et de ses accompagnateurs. |
 | `handleDeleteVehicle(rideId, btn)` | Suppression d'un véhicule (bascule automatique des passagers en liste d'attente). |
 | `handleLeaveWaitingList(waitingId, btn)` | Sortie de la liste d'attente. |
 

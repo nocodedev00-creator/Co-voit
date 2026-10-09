@@ -17,7 +17,7 @@ const DB_SCHEMA = {
   },
   WAITING_LIST: {
     sheetName: 'WAITING_LIST',
-    headers: ['id', 'match_id', 'player_name', 'needs_outward', 'needs_return', 'created_at']
+    headers: ['id', 'match_id', 'player_name', 'needs_outward', 'needs_return', 'extra_passengers', 'created_at']
   }
 };
 

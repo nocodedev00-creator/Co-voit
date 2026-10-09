@@ -385,22 +385,27 @@ function ctrlJoinRide(matchId, rideId, playerName, direction) {
         ? (ride.seats_outward !== undefined ? Number(ride.seats_outward) : Number(ride.seats_total || 0)) 
         : (ride.seats_return !== undefined ? Number(ride.seats_return) : Number(ride.seats_total || 0));
 
-      if (passengers.map(p => safeLower(p)).includes(safeLower(cleanName))) {
+      const partyCount = 1 + (Number(waitingForUser.extra_passengers) || 0);
+
+      if (passengers.map(p => safeLower(p)).some(p => p === safeLower(cleanName) || p.startsWith(safeLower(cleanName) + ' (+'))) {
         return responseError('Vous êtes déjà inscrit dans ce véhicule pour ce trajet.');
       }
 
-      if (passengers.length >= seatCapacity) {
-        return responseError('Ce véhicule est complet pour ce trajet.');
+      if (passengers.length + partyCount > seatCapacity) {
+        return responseError(`Ce véhicule n'a pas assez de places libres (${seatCapacity - passengers.length} disponible(s), ${partyCount} nécessaire(s)).`);
       }
 
       rides.filter(r => r.match_id === matchId).forEach(r => {
         const list = direction === 'outward' ? (r.outward_passengers || []) : (r.return_passengers || []);
-        if (list.map(p => safeLower(p)).includes(safeLower(cleanName))) {
+        if (list.map(p => safeLower(p)).some(p => p === safeLower(cleanName) || p.startsWith(safeLower(cleanName) + ' (+'))) {
           throw new Error(`Vous êtes déjà inscrit dans la voiture de ${r.driver_name} pour ce trajet.`);
         }
       });
 
       passengers.push(cleanName);
+      for (let i = 1; i < partyCount; i++) {
+        passengers.push(`${cleanName} (+${i})`);
+      }
 
       const updateData = { updated_at: new Date().toISOString() };
       if (direction === 'outward') updateData.outward_passengers = passengers;
@@ -444,7 +449,10 @@ function ctrlLeaveRide(matchId, rideId, playerName, direction) {
       if (!ride) return responseError('Véhicule introuvable.');
 
       let passengers = direction === 'outward' ? (ride.outward_passengers || []) : (ride.return_passengers || []);
-      passengers = passengers.filter(name => safeLower(name) !== cleanName);
+      passengers = passengers.filter(name => {
+        const n = safeLower(name);
+        return n !== cleanName && !n.startsWith(cleanName + ' (+');
+      });
 
       const updateData = { updated_at: new Date().toISOString() };
       if (direction === 'outward') updateData.outward_passengers = passengers;
@@ -458,7 +466,7 @@ function ctrlLeaveRide(matchId, rideId, playerName, direction) {
   });
 }
 
-function ctrlJoinWaitingList(matchId, playerName, needsOutward, needsReturn) {
+function ctrlJoinWaitingList(matchId, playerName, needsOutward, needsReturn, extraPassengers) {
   return withScriptLock(() => {
     try {
       const match = getTableRecords(DB_SCHEMA.MATCHES.sheetName).find(m => m.id === matchId);
@@ -469,14 +477,19 @@ function ctrlJoinWaitingList(matchId, playerName, needsOutward, needsReturn) {
       if (!cleanName) return responseError('Prénom requis.');
       if (!needsOutward && !needsReturn) return responseError('Sélectionnez au moins un trajet.');
 
+      const extraCount = Math.max(0, parseInt(extraPassengers, 10) || 0);
       const waiting = getTableRecords(DB_SCHEMA.WAITING_LIST.sheetName).filter(w => w.match_id === matchId);
       const existing = waiting.find(w => safeLower(w.player_name) === safeLower(cleanName));
 
       if (existing) {
         updateRecord(DB_SCHEMA.WAITING_LIST.sheetName, existing.id, {
           needs_outward: Boolean(needsOutward),
-          needs_return: Boolean(needsReturn)
+          needs_return: Boolean(needsReturn),
+          extra_passengers: extraCount
         });
+        existing.needs_outward = Boolean(needsOutward);
+        existing.needs_return = Boolean(needsReturn);
+        existing.extra_passengers = extraCount;
         return responseSuccess(existing);
       }
 
@@ -486,6 +499,7 @@ function ctrlJoinWaitingList(matchId, playerName, needsOutward, needsReturn) {
         player_name: cleanName,
         needs_outward: Boolean(needsOutward),
         needs_return: Boolean(needsReturn),
+        extra_passengers: extraCount,
         created_at: new Date().toISOString()
       };
 

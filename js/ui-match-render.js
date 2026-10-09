@@ -49,7 +49,8 @@ function renderMatchView(data) {
   }
 
   const waitingContainer = document.getElementById('waiting-list-container');
-  document.getElementById('waiting-count-badge').textContent = waiting.length;
+  const totalWaitingPersons = waiting.reduce((sum, item) => sum + 1 + (Number(item.extra_passengers) || 0), 0);
+  document.getElementById('waiting-count-badge').textContent = totalWaitingPersons;
   waitingContainer.innerHTML = '';
 
   if (waiting.length === 0) {
@@ -71,8 +72,11 @@ function renderMatchView(data) {
       else if (nOut) needTag = 'Aller';
       else if (nRet) needTag = 'Retour';
 
+      const extra = Number(item.extra_passengers) || 0;
+      const extraTag = extra > 0 ? ` +${extra}` : '';
+
       chip.innerHTML = `
-        <span>${escapeHtml(item.player_name)} (${needTag})</span>
+        <span>${escapeHtml(item.player_name)}${extraTag} (${needTag})</span>
         ${isMe || AppState.adminToken ? `<button class="btn-remove-waiting text-amber-800 hover:text-rose-600 font-black ml-1 text-sm leading-none" data-id="${item.id}">&times;</button>` : ''}
       `;
 
@@ -109,6 +113,8 @@ function renderUserCurrentStatus(rides, waiting, isLocked) {
 
   let outLabel = null;
   let retLabel = null;
+  const myExtra = myWait ? (Number(myWait.extra_passengers) || 0) : 0;
+  const myExtraLabel = myExtra > 0 ? ` (${1 + myExtra} pers.)` : '';
 
   // Statut ALLER
   if (myRide && toBool(myRide.offers_outward)) {
@@ -121,7 +127,7 @@ function renderUserCurrentStatus(rides, waiting, isLocked) {
   } else if (myOutPassengerRide) {
     outLabel = `Passager de <strong>${escapeHtml(myOutPassengerRide.driver_name)}</strong>`;
   } else if (myWait && toBool(myWait.needs_outward)) {
-    outLabel = 'En recherche de place 🙋';
+    outLabel = `En recherche de place${myExtraLabel} 🙋`;
   }
 
   // Statut RETOUR
@@ -135,7 +141,7 @@ function renderUserCurrentStatus(rides, waiting, isLocked) {
   } else if (myRetPassengerRide) {
     retLabel = `Passager de <strong>${escapeHtml(myRetPassengerRide.driver_name)}</strong>`;
   } else if (myWait && toBool(myWait.needs_return)) {
-    retLabel = 'En recherche de place 🙋';
+    retLabel = `En recherche de place${myExtraLabel} 🙋`;
   }
 
   // Si aucune participation

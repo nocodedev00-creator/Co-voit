@@ -63,8 +63,16 @@ function calculateAndRenderSummary(rides, waiting) {
       const wLower = safeLower(w.player_name);
       if (wLower) {
         uniqueParticipants.add(wLower);
-        if (toBool(w.needs_outward)) outwardRdvSeekers.add(wLower);
-        if (toBool(w.needs_return)) returnRdvSeekers.add(wLower);
+        const extra = Number(w.extra_passengers) || 0;
+        for (let i = 1; i <= extra; i++) uniqueParticipants.add(`${wLower} (+${i})`);
+        if (toBool(w.needs_outward)) {
+          outwardRdvSeekers.add(wLower);
+          for (let i = 1; i <= extra; i++) outwardRdvSeekers.add(`${wLower} (+${i})`);
+        }
+        if (toBool(w.needs_return)) {
+          returnRdvSeekers.add(wLower);
+          for (let i = 1; i <= extra; i++) returnRdvSeekers.add(`${wLower} (+${i})`);
+        }
       }
     }
   });
@@ -209,7 +217,9 @@ function openSummaryDetailsModal() {
 
   waiting.forEach(w => {
     if (w && w.needs_outward && !assignedOutward.has(safeLower(w.player_name))) {
-      rdvOutwardList.push(`⚠️ ${w.player_name} (Sans place Aller)`);
+      const extra = Number(w.extra_passengers) || 0;
+      const extraTag = extra > 0 ? ` (+${extra} pers.)` : '';
+      rdvOutwardList.push(`⚠️ ${w.player_name}${extraTag} (Sans place Aller)`);
     }
   });
 
@@ -235,7 +245,9 @@ function openSummaryDetailsModal() {
 
   waiting.forEach(w => {
     if (w && w.needs_return && !assignedReturn.has(safeLower(w.player_name))) {
-      rdvReturnList.push(`⚠️ ${w.player_name} (Sans place Retour)`);
+      const extra = Number(w.extra_passengers) || 0;
+      const extraTag = extra > 0 ? ` (+${extra} pers.)` : '';
+      rdvReturnList.push(`⚠️ ${w.player_name}${extraTag} (Sans place Retour)`);
     }
   });
 

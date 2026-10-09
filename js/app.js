@@ -210,22 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // --- JOUEUR : LISTE D'ATTENTE ---
+  // --- JOUEUR : RECHERCHE DE PLACE / LISTE D'ATTENTE ---
   const chkWaitOut = document.getElementById('check-wait-outward');
   const chkWaitRet = document.getElementById('check-wait-return');
-  const hintWaitEl = document.getElementById('waiting-rule-hint');
-  const updateWaitingHint = () => {
-    if (!hintWaitEl || !chkWaitOut || !chkWaitRet) return;
-    if (chkWaitOut.checked && chkWaitRet.checked) {
-      hintWaitEl.textContent = "ℹ️ Recherche d'une place pour l'Aller ET le Retour.";
-    } else if (chkWaitOut.checked) {
-      hintWaitEl.textContent = "ℹ️ Recherche Aller : le retour sera automatiquement noté comme 'Direct sur place' 📍";
-    } else if (chkWaitRet.checked) {
-      hintWaitEl.textContent = "ℹ️ Recherche Retour : l'aller sera automatiquement noté comme 'Direct sur place' 📍";
-    } else {
-      hintWaitEl.textContent = "⚠️ Veuillez cocher au moins un trajet.";
-    }
-  };
   if (chkWaitOut && chkWaitRet) {
     chkWaitOut.onchange = updateWaitingHint;
     chkWaitRet.onchange = updateWaitingHint;
@@ -233,53 +220,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnOpenWaiting = document.getElementById('btn-open-waiting-list');
   if (btnOpenWaiting) {
-    btnOpenWaiting.onclick = () => {
-      if (!AppState.currentUser) return checkUserIdentityFlow("Indique ton prénom pour t'inscrire en liste d'attente.");
-      document.getElementById('input-waiting-name').value = AppState.currentUser || '';
-      updateWaitingHint();
-      openModal('modal-waiting');
-    };
+    btnOpenWaiting.onclick = openWaitingListModal;
   }
 
   const formWaiting = document.getElementById('form-waiting');
   if (formWaiting) {
-    formWaiting.onsubmit = async (e) => {
-      e.preventDefault();
-      const btnSubmit = document.getElementById('btn-submit-waiting');
-      if (btnSubmit && btnSubmit.disabled) return;
-
-      const pName = document.getElementById('input-waiting-name').value.trim();
-      if (!pName) return;
-      setUsername(pName);
-
-      const needsOut = chkWaitOut ? chkWaitOut.checked : false;
-      const needsRet = chkWaitRet ? chkWaitRet.checked : false;
-      if (!needsOut && !needsRet) return showToast('Sélectionnez au moins un trajet.', 'error');
-
-      setButtonLoading(btnSubmit, true, 'Inscription...');
-      try {
-        if (needsOut && !needsRet) {
-          await callServer('ctrlRegisterVehicle', AppState.matchId, { driver_name: pName, offers_outward: false, offers_return: true, seats_outward: 0, seats_return: 0, is_direct: true });
-          await callServer('ctrlJoinWaitingList', AppState.matchId, pName, true, false);
-          showToast('Inscrit : Recherche Aller & Direct pour le Retour !', 'success');
-        } else if (!needsOut && needsRet) {
-          await callServer('ctrlRegisterVehicle', AppState.matchId, { driver_name: pName, offers_outward: true, offers_return: false, seats_outward: 0, seats_return: 0, is_direct: true });
-          await callServer('ctrlJoinWaitingList', AppState.matchId, pName, false, true);
-          showToast('Inscrit : Direct pour l\'Aller & Recherche Retour !', 'success');
-        } else {
-          const myDirect = (AppState.currentMatchData?.rides || []).find(r => safeLower(r.driver_name) === safeLower(pName) && r.is_direct);
-          if (myDirect) { try { await callServer('ctrlDeleteVehicle', AppState.matchId, myDirect.id, pName, AppState.adminToken); } catch(err){} }
-          await callServer('ctrlJoinWaitingList', AppState.matchId, pName, true, true);
-          showToast("Inscription en liste d'attente validée.", 'success');
-        }
-        closeModal('modal-waiting');
-        loadMatchDetails();
-      } catch (err) {
-        showToast(err.message, 'error');
-      } finally {
-        setButtonLoading(btnSubmit, false);
-      }
-    };
+    formWaiting.onsubmit = handleWaitingFormSubmit;
   }
 
   // --- EXPORT WHATSAPP : COPIER DANS LE PRESSE-PAPIER ---

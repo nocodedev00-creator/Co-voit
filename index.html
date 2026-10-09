@@ -13,7 +13,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Styles Spécifiques & Overrides -->
-  <link rel="stylesheet" href="styles.css?v=20260927_2">
+  <link rel="stylesheet" href="styles.css?v=20261009_1">
 </head>
 <body class="h-full bg-slate-100 flex flex-col font-sans">
 
@@ -606,6 +606,17 @@
           <input type="text" id="input-waiting-name" required placeholder="Ex: Romain" class="w-full px-3.5 py-3 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-amber-500 text-sm font-semibold">
         </div>
 
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Accompagnant(s) (optionnel)</label>
+          <select id="select-waiting-extra" class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-amber-500 text-xs font-bold text-slate-800 bg-white">
+            <option value="0">Seul (1 place)</option>
+            <option value="1">+1 accompagnant (2 places au total)</option>
+            <option value="2">+2 accompagnants (3 places au total)</option>
+            <option value="3">+3 accompagnants (4 places au total)</option>
+          </select>
+          <p class="text-[10px] text-slate-500 mt-1 font-semibold">Ex : parents d'un joueur, conjoint(e), etc.</p>
+        </div>
+
         <div class="space-y-1.5 pt-1">
           <label class="block text-xs font-bold text-slate-700 uppercase">Transport souhaité pour :</label>
           <div class="grid grid-cols-2 gap-2">
@@ -633,16 +644,16 @@
   <div id="toast-container" class="fixed bottom-4 left-0 right-0 z-50 flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
 
   <!-- SCRIPTS CLIENT MODULAIRES -->
-  <script src="js/config.js?v=20260927_2"></script>
-  <script src="js/state.js?v=20260927_2"></script>
-  <script src="js/api.js?v=20260927_2"></script>
-  <script src="js/ui-utils.js?v=20260927_2"></script>
-  <script src="js/ui-match-summary.js?v=20260927_2"></script>
-  <script src="js/ui-match-cards.js?v=20260927_2"></script>
-  <script src="js/ui-match-render.js?v=20260927_2"></script>
-  <script src="js/ui-match-actions.js?v=20260927_2"></script>
-  <script src="js/ui-admin.js?v=20260927_2"></script>
-  <script src="js/app.js?v=20260927_2"></script>
+  <script src="js/config.js?v=20261009_1"></script>
+  <script src="js/state.js?v=20261009_1"></script>
+  <script src="js/api.js?v=20261009_1"></script>
+  <script src="js/ui-utils.js?v=20261009_1"></script>
+  <script src="js/ui-match-summary.js?v=20261009_1"></script>
+  <script src="js/ui-match-cards.js?v=20261009_1"></script>
+  <script src="js/ui-match-render.js?v=20261009_1"></script>
+  <script src="js/ui-match-actions.js?v=20261009_1"></script>
+  <script src="js/ui-admin.js?v=20261009_1"></script>
+  <script src="js/app.js?v=20261009_1"></script>
 
 </body>
 </html>

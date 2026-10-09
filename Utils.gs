@@ -73,7 +73,10 @@ function formatWhatsAppSummary(match, rides, waitingList, publicUrl) {
     });
   }
 
-  const outwardWaiting = waitingList.filter(w => w.needs_outward).map(w => w.player_name);
+  const outwardWaiting = waitingList.filter(w => w.needs_outward).map(w => {
+    const extra = Number(w.extra_passengers) || 0;
+    return extra > 0 ? `${w.player_name} (+${extra})` : w.player_name;
+  });
   if (outwardWaiting.length > 0) {
     text += `⚠️ *En attente de place Aller :* ${outwardWaiting.join(', ')}\n`;
   }
@@ -96,7 +99,10 @@ function formatWhatsAppSummary(match, rides, waitingList, publicUrl) {
     });
   }
 
-  const returnWaiting = waitingList.filter(w => w.needs_return).map(w => w.player_name);
+  const returnWaiting = waitingList.filter(w => w.needs_return).map(w => {
+    const extra = Number(w.extra_passengers) || 0;
+    return extra > 0 ? `${w.player_name} (+${extra})` : w.player_name;
+  });
   if (returnWaiting.length > 0) {
     text += `⚠️ *En attente de place Retour :* ${returnWaiting.join(', ')}\n`;
   }

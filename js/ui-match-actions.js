@@ -118,3 +118,77 @@ async function handleLeaveWaitingList(waitingId, btn) {
   }
 }
 
+function updateWaitingHint() {
+  const chkWaitOut = document.getElementById('check-wait-outward');
+  const chkWaitRet = document.getElementById('check-wait-return');
+  const hintWaitEl = document.getElementById('waiting-rule-hint');
+  if (!hintWaitEl || !chkWaitOut || !chkWaitRet) return;
+  if (chkWaitOut.checked && chkWaitRet.checked) {
+    hintWaitEl.textContent = "ℹ️ Recherche d'une place pour l'Aller ET le Retour.";
+  } else if (chkWaitOut.checked) {
+    hintWaitEl.textContent = "ℹ️ Recherche Aller : le retour sera automatiquement noté comme 'Direct sur place' 📍";
+  } else if (chkWaitRet.checked) {
+    hintWaitEl.textContent = "ℹ️ Recherche Retour : l'aller sera automatiquement noté comme 'Direct sur place' 📍";
+  } else {
+    hintWaitEl.textContent = "⚠️ Veuillez cocher au moins un trajet.";
+  }
+}
+
+function openWaitingListModal() {
+  if (!AppState.currentUser) return checkUserIdentityFlow("Indique ton prénom pour t'inscrire en liste d'attente.");
+  const inputName = document.getElementById('input-waiting-name');
+  if (inputName) inputName.value = AppState.currentUser || '';
+
+  const waitingList = AppState.currentMatchData?.waiting_list || [];
+  const myWait = waitingList.find(w => safeLower(w.player_name) === safeLower(AppState.currentUser));
+  const selExtra = document.getElementById('select-waiting-extra');
+  if (selExtra) {
+    selExtra.value = myWait && myWait.extra_passengers ? String(myWait.extra_passengers) : '0';
+  }
+
+  updateWaitingHint();
+  openModal('modal-waiting');
+}
+
+async function handleWaitingFormSubmit(e) {
+  e.preventDefault();
+  const btnSubmit = document.getElementById('btn-submit-waiting');
+  if (btnSubmit && btnSubmit.disabled) return;
+
+  const pName = document.getElementById('input-waiting-name')?.value.trim();
+  if (!pName) return;
+  setUsername(pName);
+
+  const chkWaitOut = document.getElementById('check-wait-outward');
+  const chkWaitRet = document.getElementById('check-wait-return');
+  const needsOut = chkWaitOut ? chkWaitOut.checked : false;
+  const needsRet = chkWaitRet ? chkWaitRet.checked : false;
+  if (!needsOut && !needsRet) return showToast('Sélectionnez au moins un trajet.', 'error');
+
+  const extraCount = parseInt(document.getElementById('select-waiting-extra')?.value || '0', 10);
+
+  setButtonLoading(btnSubmit, true, 'Inscription...');
+  try {
+    if (needsOut && !needsRet) {
+      await callServer('ctrlRegisterVehicle', AppState.matchId, { driver_name: pName, offers_outward: false, offers_return: true, seats_outward: 0, seats_return: 0, is_direct: true });
+      await callServer('ctrlJoinWaitingList', AppState.matchId, pName, true, false, extraCount);
+      showToast('Inscrit : Recherche Aller & Direct pour le Retour !', 'success');
+    } else if (!needsOut && needsRet) {
+      await callServer('ctrlRegisterVehicle', AppState.matchId, { driver_name: pName, offers_outward: true, offers_return: false, seats_outward: 0, seats_return: 0, is_direct: true });
+      await callServer('ctrlJoinWaitingList', AppState.matchId, pName, false, true, extraCount);
+      showToast("Inscrit : Direct pour l'Aller & Recherche Retour !", 'success');
+    } else {
+      const myDirect = (AppState.currentMatchData?.rides || []).find(r => safeLower(r.driver_name) === safeLower(pName) && r.is_direct);
+      if (myDirect) { try { await callServer('ctrlDeleteVehicle', AppState.matchId, myDirect.id, pName, AppState.adminToken); } catch(err){} }
+      await callServer('ctrlJoinWaitingList', AppState.matchId, pName, true, true, extraCount);
+      showToast("Inscription en recherche de place validée.", 'success');
+    }
+    closeModal('modal-waiting');
+    loadMatchDetails();
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    setButtonLoading(btnSubmit, false);
+  }
+}
+
