@@ -211,6 +211,7 @@ function buildLegDetails(rides, waiting, dir) {
   const rdvList = [];
   const directList = [];
   const assigned = new Set();
+  const directDrivers = new Set();
 
   rides.forEach(r => {
     const driver = r.driver_name;
@@ -219,22 +220,31 @@ function buildLegDetails(rides, waiting, dir) {
 
     if (r[offersKey]) {
       if (isDirect) {
-        directList.push(`🚗 ${driver} ${seats > 0 ? `(Voiture directe • ${seats} pl.)` : '(Direct par ses moyens)'}`);
+        directDrivers.add(safeLower(driver));
+        directList.push(seats > 0 ? `🚗 ${driver} (Voiture directe • ${seats} pl.)` : `📍 ${driver} (Par ses propres moyens)`);
         (r[passKey] || []).forEach(p => { directList.push(`👤 ${p} (avec ${driver})`); assigned.add(safeLower(p)); });
       } else {
         rdvList.push(`🚗 ${driver} (Conducteur • ${seats} pl.)`);
         (r[passKey] || []).forEach(p => { rdvList.push(`👤 ${p} (avec ${driver})`); assigned.add(safeLower(p)); });
       }
     } else if (!isDirect) {
-      directList.push(`📍 ${driver} (Direct par ses moyens)`);
+      directDrivers.add(safeLower(driver));
+      directList.push(`📍 ${driver} (Par ses propres moyens)`);
     }
   });
 
   waiting.forEach(w => {
-    if (w && w[needsKey] && !assigned.has(safeLower(w.player_name))) {
-      const extra = Number(w.extra_passengers) || 0;
-      const extraTag = extra > 0 ? ` (+${extra} pers.)` : '';
-      rdvList.push(`⚠️ ${w.player_name}${extraTag} (Sans place ${isOut ? 'Aller' : 'Retour'})`);
+    if (!w || !w.player_name) return;
+    const pName = w.player_name;
+    const pLower = safeLower(pName);
+    if (w[needsKey]) {
+      if (!assigned.has(pLower)) {
+        const extra = Number(w.extra_passengers) || 0;
+        const extraTag = extra > 0 ? ` (+${extra} pers.)` : '';
+        rdvList.push(`⚠️ ${pName}${extraTag} (Sans place ${isOut ? 'Aller' : 'Retour'})`);
+      }
+    } else if (!directDrivers.has(pLower) && !assigned.has(pLower)) {
+      directList.push(`📍 ${pName} (Par ses propres moyens)`);
     }
   });
 
@@ -253,13 +263,13 @@ function openSummaryDetailsModal() {
   document.getElementById('detail-count-direct-outward').textContent = out.directList.length;
   document.getElementById('detail-total-outward').textContent = `${out.rdvList.length + out.directList.length} joueur(s)`;
   renderChipsList('detail-list-rdv-outward', out.rdvList, 'bg-white text-blue-950 border-blue-200', 'Aucun joueur au RDV Aller');
-  renderChipsList('detail-list-direct-outward', out.directList, 'bg-white text-slate-800 border-slate-300', 'Aucun joueur en direct Aller');
+  renderChipsList('detail-list-direct-outward', out.directList, 'bg-white text-slate-800 border-slate-300', 'Aucun joueur par ses propres moyens');
 
   document.getElementById('detail-count-rdv-return').textContent = ret.rdvList.length;
   document.getElementById('detail-count-direct-return').textContent = ret.directList.length;
   document.getElementById('detail-total-return').textContent = `${ret.rdvList.length + ret.directList.length} joueur(s)`;
   renderChipsList('detail-list-rdv-return', ret.rdvList, 'bg-white text-orange-950 border-orange-200', 'Aucun joueur au RDV Retour');
-  renderChipsList('detail-list-direct-return', ret.directList, 'bg-white text-slate-800 border-slate-300', 'Aucun joueur en direct Retour');
+  renderChipsList('detail-list-direct-return', ret.directList, 'bg-white text-slate-800 border-slate-300', 'Aucun joueur par ses propres moyens');
 
   openModal('modal-summary-details');
 }
