@@ -560,9 +560,12 @@
               <span class="text-xs font-black text-slate-800">Retour</span>
             </label>
           </div>
+          <p id="car-rule-hint" class="text-[11px] text-slate-600 font-semibold bg-slate-50 p-2 rounded-lg border border-slate-200">
+            🚗 Conducteur au RDV pour l'Aller et le Retour.
+          </p>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 pt-1">
+        <div class="grid grid-cols-2 gap-3 pt-1" id="container-car-seats">
           <div>
             <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Places Aller</label>
             <input type="number" id="input-car-seats-outward" min="0" max="8" value="2" required class="w-full px-3.5 py-3 rounded-xl border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm font-bold">
@@ -574,9 +577,12 @@
         </div>
 
         <div class="p-3 bg-slate-50 rounded-xl border-2 border-slate-200">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="check-car-direct" class="w-4 h-4 text-blue-600 rounded">
-            <span class="text-xs font-bold text-slate-700">Je vais directement sur place (sans passer par le RDV)</span>
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" id="check-car-direct" class="w-4 h-4 text-blue-600 rounded mt-0.5">
+            <div>
+              <span class="text-xs font-bold text-slate-800 block">J'y vais directement sur place pour TOUT le match</span>
+              <span class="text-[11px] text-slate-500 font-medium block">Aller et Retour par mes propres moyens (sans passer par le RDV)</span>
+            </div>
           </label>
         </div>
 

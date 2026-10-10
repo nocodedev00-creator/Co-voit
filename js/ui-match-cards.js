@@ -99,7 +99,12 @@ function createRideCardElement(ride, isLocked, waitingList) {
             </div>
             ${!isLocked ? `<div class="pt-1 outward-action"></div>` : ''}
           </div>
-        ` : ''}
+        ` : `
+          <div style="flex:1 1 0; min-width:0;" class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex flex-col items-center justify-center text-center">
+            <span class="text-xs font-black text-slate-600">➡️ Aller</span>
+            <span class="text-[11px] font-bold text-slate-500 pt-1">Direct sur place 📍</span>
+          </div>
+        `}
 
         ${ride.offers_return ? `
           <div style="flex:1 1 0; min-width:0;" class="p-2.5 bg-orange-50/80 rounded-xl border border-orange-300 text-xs space-y-1.5">
@@ -114,7 +119,12 @@ function createRideCardElement(ride, isLocked, waitingList) {
             </div>
             ${!isLocked ? `<div class="pt-1 return-action"></div>` : ''}
           </div>
-        ` : ''}
+        ` : `
+          <div style="flex:1 1 0; min-width:0;" class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex flex-col items-center justify-center text-center">
+            <span class="text-xs font-black text-slate-600">⬅️ Retour</span>
+            <span class="text-[11px] font-bold text-slate-500 pt-1">Direct sur place 📍</span>
+          </div>
+        `}
       </div>
     ` : ''}
   `;

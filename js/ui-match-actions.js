@@ -15,6 +15,31 @@ async function loadMatchDetails() {
   }
 }
 
+function updateCarModalHint() {
+  const chkOut = document.getElementById('check-offers-outward');
+  const chkRet = document.getElementById('check-offers-return');
+  const chkDir = document.getElementById('check-car-direct');
+  const hintEl = document.getElementById('car-rule-hint');
+  const seatsContainer = document.getElementById('container-car-seats');
+  if (!hintEl || !chkOut || !chkRet || !chkDir) return;
+
+  if (chkDir.checked) {
+    hintEl.textContent = "📍 Trajet direct Aller ET Retour par vos propres moyens (sans passer par le RDV).";
+    if (seatsContainer) seatsContainer.style.opacity = '0.4';
+  } else {
+    if (seatsContainer) seatsContainer.style.opacity = '1';
+    if (chkOut.checked && chkRet.checked) {
+      hintEl.textContent = "🚗 Conducteur au RDV pour l'Aller et le Retour.";
+    } else if (chkOut.checked) {
+      hintEl.textContent = "🚗 Conducteur à l'Aller • 📍 Retour automatiquement noté 'Direct sur place'.";
+    } else if (chkRet.checked) {
+      hintEl.textContent = "📍 Aller automatiquement noté 'Direct sur place' • 🚗 Conducteur au Retour.";
+    } else {
+      hintEl.textContent = "⚠️ Cochez au moins l'Aller ou le Retour.";
+    }
+  }
+}
+
 function openEditRideModal(ride) {
   document.getElementById('modal-car-title').textContent = 'Modifier mon véhicule';
   document.getElementById('input-edit-ride-id').value = ride.id;
@@ -31,6 +56,7 @@ function openEditRideModal(ride) {
   const seatsRetEdit = document.getElementById('input-car-seats-return');
   if (seatsRetEdit) seatsRetEdit.dataset.userTouched = 'true';
 
+  updateCarModalHint();
   openModal('modal-add-car');
 }
 

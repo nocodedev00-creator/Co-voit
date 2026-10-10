@@ -52,11 +52,15 @@ function calculateAndRenderSummary(rides, waiting) {
         if (dName) outwardRdvDrivers.add(dName);
         outwardSeats += sOut;
         outPass.forEach(p => { const pl = safeLower(p); if (pl) outwardRdvSeekers.add(pl); });
+      } else if (dName) {
+        outwardDirectParticipants.add(dName);
       }
       if (offersRet) {
         if (dName) returnRdvDrivers.add(dName);
         returnSeats += sRet;
         retPass.forEach(p => { const pl = safeLower(p); if (pl) returnRdvSeekers.add(pl); });
+      } else if (dName) {
+        returnDirectParticipants.add(dName);
       }
     }
   });
@@ -197,81 +201,65 @@ function renderVerdictCard(el, dirLabel, icon, participantsCount, rdvTotal, seat
   }
 }
 
+function buildLegDetails(rides, waiting, dir) {
+  const isOut = dir === 'outward';
+  const offersKey = isOut ? 'offers_outward' : 'offers_return';
+  const seatsKey = isOut ? 'seats_outward' : 'seats_return';
+  const passKey = isOut ? 'outward_passengers' : 'return_passengers';
+  const needsKey = isOut ? 'needs_outward' : 'needs_return';
+
+  const rdvList = [];
+  const directList = [];
+  const assigned = new Set();
+
+  rides.forEach(r => {
+    const driver = r.driver_name;
+    const isDirect = Boolean(r.is_direct);
+    const seats = r[seatsKey] !== undefined ? Number(r[seatsKey]) : Number(r.seats_total || 0);
+
+    if (r[offersKey]) {
+      if (isDirect) {
+        directList.push(`🚗 ${driver} ${seats > 0 ? `(Voiture directe • ${seats} pl.)` : '(Direct par ses moyens)'}`);
+        (r[passKey] || []).forEach(p => { directList.push(`👤 ${p} (avec ${driver})`); assigned.add(safeLower(p)); });
+      } else {
+        rdvList.push(`🚗 ${driver} (Conducteur • ${seats} pl.)`);
+        (r[passKey] || []).forEach(p => { rdvList.push(`👤 ${p} (avec ${driver})`); assigned.add(safeLower(p)); });
+      }
+    } else if (!isDirect) {
+      directList.push(`📍 ${driver} (Direct par ses moyens)`);
+    }
+  });
+
+  waiting.forEach(w => {
+    if (w && w[needsKey] && !assigned.has(safeLower(w.player_name))) {
+      const extra = Number(w.extra_passengers) || 0;
+      const extraTag = extra > 0 ? ` (+${extra} pers.)` : '';
+      rdvList.push(`⚠️ ${w.player_name}${extraTag} (Sans place ${isOut ? 'Aller' : 'Retour'})`);
+    }
+  });
+
+  return { rdvList, directList };
+}
+
 function openSummaryDetailsModal() {
   if (!AppState.currentMatchData) return;
-
   const rides = AppState.currentMatchData.rides || [];
   const waiting = AppState.currentMatchData.waiting_list || [];
 
-  const rdvOutwardList = [];
-  const directOutwardList = [];
-  const assignedOutward = new Set();
+  const out = buildLegDetails(rides, waiting, 'outward');
+  const ret = buildLegDetails(rides, waiting, 'return');
 
-  rides.forEach(r => {
-    const driver = r.driver_name;
-    const isDirect = Boolean(r.is_direct);
-    const seatsOut = r.seats_outward !== undefined ? Number(r.seats_outward) : Number(r.seats_total || 0);
+  document.getElementById('detail-count-rdv-outward').textContent = out.rdvList.length;
+  document.getElementById('detail-count-direct-outward').textContent = out.directList.length;
+  document.getElementById('detail-total-outward').textContent = `${out.rdvList.length + out.directList.length} joueur(s)`;
+  renderChipsList('detail-list-rdv-outward', out.rdvList, 'bg-white text-blue-950 border-blue-200', 'Aucun joueur au RDV Aller');
+  renderChipsList('detail-list-direct-outward', out.directList, 'bg-white text-slate-800 border-slate-300', 'Aucun joueur en direct Aller');
 
-    if (r.offers_outward) {
-      if (isDirect) {
-        directOutwardList.push(`🚗 ${driver} ${seatsOut > 0 ? `(Voiture directe • ${seatsOut} pl.)` : '(Direct par ses moyens)'}`);
-        (r.outward_passengers || []).forEach(p => { directOutwardList.push(`👤 ${p} (avec ${driver})`); assignedOutward.add(safeLower(p)); });
-      } else {
-        rdvOutwardList.push(`🚗 ${driver} (Conducteur • ${seatsOut} pl.)`);
-        (r.outward_passengers || []).forEach(p => { rdvOutwardList.push(`👤 ${p} (avec ${driver})`); assignedOutward.add(safeLower(p)); });
-      }
-    }
-  });
-
-  waiting.forEach(w => {
-    if (w && w.needs_outward && !assignedOutward.has(safeLower(w.player_name))) {
-      const extra = Number(w.extra_passengers) || 0;
-      const extraTag = extra > 0 ? ` (+${extra} pers.)` : '';
-      rdvOutwardList.push(`⚠️ ${w.player_name}${extraTag} (Sans place Aller)`);
-    }
-  });
-
-  const rdvReturnList = [];
-  const directReturnList = [];
-  const assignedReturn = new Set();
-
-  rides.forEach(r => {
-    const driver = r.driver_name;
-    const isDirect = Boolean(r.is_direct);
-    const seatsRet = r.seats_return !== undefined ? Number(r.seats_return) : Number(r.seats_total || 0);
-
-    if (r.offers_return) {
-      if (isDirect) {
-        directReturnList.push(`🚗 ${driver} ${seatsRet > 0 ? `(Voiture directe • ${seatsRet} pl.)` : '(Direct par ses moyens)'}`);
-        (r.return_passengers || []).forEach(p => { directReturnList.push(`👤 ${p} (avec ${driver})`); assignedReturn.add(safeLower(p)); });
-      } else {
-        rdvReturnList.push(`🚗 ${driver} (Conducteur • ${seatsRet} pl.)`);
-        (r.return_passengers || []).forEach(p => { rdvReturnList.push(`👤 ${p} (avec ${driver})`); assignedReturn.add(safeLower(p)); });
-      }
-    }
-  });
-
-  waiting.forEach(w => {
-    if (w && w.needs_return && !assignedReturn.has(safeLower(w.player_name))) {
-      const extra = Number(w.extra_passengers) || 0;
-      const extraTag = extra > 0 ? ` (+${extra} pers.)` : '';
-      rdvReturnList.push(`⚠️ ${w.player_name}${extraTag} (Sans place Retour)`);
-    }
-  });
-
-  document.getElementById('detail-count-rdv-outward').textContent = rdvOutwardList.length;
-  document.getElementById('detail-count-direct-outward').textContent = directOutwardList.length;
-  document.getElementById('detail-total-outward').textContent = `${rdvOutwardList.length + directOutwardList.length} joueur(s)`;
-
-  renderChipsList('detail-list-rdv-outward', rdvOutwardList, 'bg-white text-blue-950 border-blue-200', 'Aucun joueur au RDV Aller');
-  renderChipsList('detail-list-direct-outward', directOutwardList, 'bg-white text-slate-800 border-slate-300', 'Aucun joueur en direct Aller');
-
-  document.getElementById('detail-count-rdv-return').textContent = rdvReturnList.length;
-  document.getElementById('detail-count-direct-return').textContent = directReturnList.length;
-  document.getElementById('detail-total-return').textContent = `${rdvReturnList.length + directReturnList.length} joueur(s)`;
-
-  renderChipsList('detail-list-rdv-return', rdvReturnList, 'bg-white text-orange-950 border-orange-200', 'Aucun joueur au RDV Retour');
-  renderChipsList('detail-list-direct-return', directReturnList, 'bg-white text-slate-800 border-slate-300', 'Aucun joueur en direct Retour');
+  document.getElementById('detail-count-rdv-return').textContent = ret.rdvList.length;
+  document.getElementById('detail-count-direct-return').textContent = ret.directList.length;
+  document.getElementById('detail-total-return').textContent = `${ret.rdvList.length + ret.directList.length} joueur(s)`;
+  renderChipsList('detail-list-rdv-return', ret.rdvList, 'bg-white text-orange-950 border-orange-200', 'Aucun joueur au RDV Retour');
+  renderChipsList('detail-list-direct-return', ret.directList, 'bg-white text-slate-800 border-slate-300', 'Aucun joueur en direct Retour');
 
   openModal('modal-summary-details');
 }

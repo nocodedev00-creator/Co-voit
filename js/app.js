@@ -131,6 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('input-edit-ride-id').value = '';
       document.getElementById('input-car-driver').value = AppState.currentUser || '';
       document.getElementById('input-car-driver').disabled = false;
+      document.getElementById('check-offers-outward').checked = true;
+      document.getElementById('check-offers-return').checked = true;
       document.getElementById('input-car-seats-outward').value = '3';
       document.getElementById('input-car-seats-return').value = '3';
       document.getElementById('check-car-direct').checked = false;
@@ -138,7 +140,23 @@ document.addEventListener('DOMContentLoaded', () => {
       const sRet = document.getElementById('input-car-seats-return');
       if (sRet) sRet.dataset.userTouched = 'false';
       if (sOut) sOut.dataset.userTouched = 'false';
+      if (typeof updateCarModalHint === 'function') updateCarModalHint();
       openModal('modal-add-car');
+    };
+  }
+
+  const chkCarOut = document.getElementById('check-offers-outward');
+  const chkCarRet = document.getElementById('check-offers-return');
+  const chkCarDir = document.getElementById('check-car-direct');
+  if (chkCarOut && chkCarRet && chkCarDir) {
+    chkCarOut.onchange = () => { if (chkCarDir.checked) chkCarDir.checked = false; updateCarModalHint(); };
+    chkCarRet.onchange = () => { if (chkCarDir.checked) chkCarDir.checked = false; updateCarModalHint(); };
+    chkCarDir.onchange = () => {
+      if (chkCarDir.checked) {
+        chkCarOut.checked = true;
+        chkCarRet.checked = true;
+      }
+      updateCarModalHint();
     };
   }
 
@@ -187,16 +205,23 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!driverName) return;
       setUsername(driverName);
 
+      const isDirect = document.getElementById('check-car-direct').checked;
+      const offersOut = isDirect ? true : document.getElementById('check-offers-outward').checked;
+      const offersRet = isDirect ? true : document.getElementById('check-offers-return').checked;
+
+      if (!isDirect && !offersOut && !offersRet) {
+        return showToast("Cochez au moins l'aller ou le retour.", 'error');
+      }
+
       const payload = {
         driver_name: driverName,
-        offers_outward: document.getElementById('check-offers-outward').checked,
-        offers_return: document.getElementById('check-offers-return').checked,
-        seats_outward: parseInt(document.getElementById('input-car-seats-outward').value, 10) || 0,
-        seats_return: parseInt(document.getElementById('input-car-seats-return').value, 10) || 0,
-        is_direct: document.getElementById('check-car-direct').checked,
+        offers_outward: offersOut,
+        offers_return: offersRet,
+        seats_outward: isDirect ? 0 : (offersOut ? (parseInt(document.getElementById('input-car-seats-outward').value, 10) || 0) : 0),
+        seats_return: isDirect ? 0 : (offersRet ? (parseInt(document.getElementById('input-car-seats-return').value, 10) || 0) : 0),
+        is_direct: isDirect,
         adminToken: AppState.adminToken
       };
-      if (!payload.offers_outward && !payload.offers_return) return showToast("Cochez au moins l'aller ou le retour.", 'error');
 
       setButtonLoading(btnSubmit, true, 'Enregistrement...');
       try {
