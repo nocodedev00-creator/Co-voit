@@ -187,7 +187,7 @@ function renderVerdictCard(el, dirLabel, icon, participantsCount, rdvTotal, seat
       <div class="flex items-center justify-center gap-1 text-emerald-900 text-[11px] leading-tight font-black">
         <span>🟢</span> <span>${dirLabel} : Assez de places !</span>
       </div>
-      <div class="text-[10px] font-bold text-emerald-700 pt-0.5">${rabText} • Parking</div>
+      <div class="text-[10px] font-bold text-emerald-700 pt-0.5">${rabText}</div>
     `;
   } else {
     const manque = Math.abs(solde);
