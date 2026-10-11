@@ -22,6 +22,9 @@ L'application Co'Voit' tourne sur une architecture découplée GitHub Pages + AP
 - ✅ **Verrouillage de réservation sélective** : interdiction absolue de réserver une voiture si on ne cherche pas pour ce sens.
 - ✅ **Masquage intelligent du conteneur d'actions** : `#match-actions-container` masqué dès l'inscription complétée.
 - ✅ **Synchronisation Clasp en direct validée** : push réussi de 5 fichiers (`Code.gs`, `Controllers.gs`, `Database.gs`, `Utils.gs`, `appsscript.json`).
-- ✅ **Redéploiement Clasp en production** : version @31 déployée directement sur l'identifiant existant.
+- ✅ **Option Admin "Répartition nominative vs Comptage simple"** : Choix à la création du match d'activer ou non l'assignation de place par voiture.
+- ✅ **Mode Comptage Simple opérationnel** : Cartes des véhicules allégées (uniquement conducteurs et places proposées), interdiction de réservation par voiture, bilan et liste des demandeurs au RDV préservés.
+- ✅ **Synthèse WhatsApp adaptative** : Formatage automatique selon le mode du match.
+- ✅ **Redéploiement Clasp en production** : version @37 déployée directement sur l'identifiant existant.
 - ✅ **Configuration Clasp sécurisée** : `.clasp.json`, `.claspignore` (filtrage strict 5 fichiers), `appsscript.json`, `.gitignore` sécurisé.
 - ✅ **Règle de synchronisation systématique** : intégrée dans `memory-bank/systemPatterns.md`.

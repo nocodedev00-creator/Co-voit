@@ -21,3 +21,8 @@ Ce document trace l'historique condensé des décisions d'architecture et résol
 - **Modèle de données** : Ajout automatique de la colonne `extra_passengers` dans `WAITING_LIST` via `syncSheetHeaders()`.
 - **Calculs de solde réels** : Prise en compte du groupe (`1 + extra_passengers`) dans les places demandées, les soldes et les pastilles de synthèse.
 - **Réservation solidaire** : Capacité vérifiée pour le groupe lors du choix "+ Monter", réservation et désistement synchronisés.
+
+## 2026-10-11 : Option Répartition Nominative vs Comptage Simple
+- **Paramétrage match** : Ajout du champ `has_car_assignment` dans `MATCHES` (activé par défaut).
+- **Mode comptage simple** : Masquage des boutons "Monter" et assignations individuelles si désactivé ; bilan des capacités et liste des demandeurs au RDV préservés.
+- **Sécurisation API** : Contrôle dans `ctrlJoinRide` et formatage adapté dans `formatWhatsAppSummary`.

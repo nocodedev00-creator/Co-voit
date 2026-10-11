@@ -70,6 +70,9 @@ function handleApiRequest(e) {
       case 'ctrlToggleMatchLock':
         result = ctrlToggleMatchLock(args[0], args[1], args[2]);
         break;
+      case 'ctrlToggleMatchAssignment':
+        result = ctrlToggleMatchAssignment(args[0], args[1], args[2]);
+        break;
       case 'ctrlDeleteMatch':
         result = ctrlDeleteMatch(args[0], args[1]);
         break;

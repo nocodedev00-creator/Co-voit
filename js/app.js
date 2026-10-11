@@ -90,6 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnOpenCreate) {
     btnOpenCreate.onclick = () => {
       document.getElementById('form-create-match')?.reset();
+      const chk = document.getElementById('check-has-car-assignment');
+      if (chk) chk.checked = true;
       openModal('modal-create-match');
     };
   }
@@ -102,11 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnSubmit && btnSubmit.disabled) return;
       setButtonLoading(btnSubmit, true, 'Création...');
 
+      const chk = document.getElementById('check-has-car-assignment');
       const payload = {
         title: document.getElementById('input-match-title').value,
         event_date: document.getElementById('input-match-date').value,
         departure_time: document.getElementById('input-match-time').value,
-        meeting_place: document.getElementById('input-match-place').value
+        meeting_place: document.getElementById('input-match-place').value,
+        has_car_assignment: chk ? chk.checked : true
       };
 
       try {

@@ -30,6 +30,14 @@ function renderMatchView(data) {
     actionsContainer.classList.remove('opacity-50', 'pointer-events-none');
   }
 
+  const hasAssignment = match.has_car_assignment !== false && match.has_car_assignment !== 'false';
+  const waitingSubtitle = document.getElementById('waiting-subtitle');
+  if (waitingSubtitle) {
+    waitingSubtitle.textContent = hasAssignment 
+      ? 'Répartition sur le parking ou réservation ci-dessus' 
+      : 'Liste des joueurs à véhiculer (répartition libre sur le parking)';
+  }
+
   calculateAndRenderSummary(rides, waiting);
   renderUserCurrentStatus(rides, waiting, match.is_locked);
 

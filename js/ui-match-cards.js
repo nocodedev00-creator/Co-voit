@@ -62,6 +62,9 @@ function createRideCardElement(ride, isLocked, waitingList) {
     ? `<span class="bg-indigo-100 text-indigo-900 border border-indigo-300 text-[10px] font-black px-2 py-0.5 rounded">${isDirectAlone ? 'Direct par ses moyens 📍' : 'Direct 📍'}</span>` 
     : '';
 
+  const match = AppState.currentMatchData?.match;
+  const hasAssignment = match?.has_car_assignment !== false && match?.has_car_assignment !== 'false';
+
   card.innerHTML = `
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2.5">
@@ -84,7 +87,7 @@ function createRideCardElement(ride, isLocked, waitingList) {
       </div>
     </div>
 
-    ${!isDirectAlone ? `
+    ${!isDirectAlone ? (hasAssignment ? `
       <div style="display:flex; flex-direction:row; gap:0.75rem; align-items:stretch;">
         ${ride.offers_outward ? `
           <div style="flex:1 1 0; min-width:0;" class="p-2.5 bg-blue-50/80 rounded-xl border border-blue-200 text-xs space-y-1.5">
@@ -126,7 +129,33 @@ function createRideCardElement(ride, isLocked, waitingList) {
           </div>
         `}
       </div>
-    ` : ''}
+    ` : `
+      <div style="display:flex; flex-direction:row; gap:0.75rem; align-items:stretch;">
+        ${ride.offers_outward ? `
+          <div style="flex:1 1 0; min-width:0;" class="p-2.5 bg-blue-50/80 rounded-xl border border-blue-200 text-xs flex flex-col justify-between">
+            <span class="text-blue-900 font-black text-xs">➡️ Aller</span>
+            <span class="font-black text-blue-800 text-xs mt-1">🚗 ${seatsOut} place${seatsOut > 1 ? 's' : ''}</span>
+          </div>
+        ` : `
+          <div style="flex:1 1 0; min-width:0;" class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex flex-col items-center justify-center text-center">
+            <span class="text-xs font-black text-slate-600">➡️ Aller</span>
+            <span class="text-[11px] font-bold text-slate-500 pt-1">Direct sur place 📍</span>
+          </div>
+        `}
+
+        ${ride.offers_return ? `
+          <div style="flex:1 1 0; min-width:0;" class="p-2.5 bg-orange-50/80 rounded-xl border border-orange-300 text-xs flex flex-col justify-between">
+            <span class="text-orange-900 font-black text-xs">⬅️ Retour</span>
+            <span class="font-black text-orange-800 text-xs mt-1">🚗 ${seatsRet} place${seatsRet > 1 ? 's' : ''}</span>
+          </div>
+        ` : `
+          <div style="flex:1 1 0; min-width:0;" class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex flex-col items-center justify-center text-center">
+            <span class="text-xs font-black text-slate-600">⬅️ Retour</span>
+            <span class="text-[11px] font-bold text-slate-500 pt-1">Direct sur place 📍</span>
+          </div>
+        `}
+      </div>
+    `) : ''}
   `;
 
   const deleteBtn = card.querySelector('.btn-delete-ride');
@@ -134,7 +163,7 @@ function createRideCardElement(ride, isLocked, waitingList) {
     deleteBtn.onclick = () => handleDeleteVehicle(ride.id, deleteBtn);
   }
 
-  if (!isDirectAlone && ride.offers_outward) {
+  if (hasAssignment && !isDirectAlone && ride.offers_outward) {
     const chipsContainer = card.querySelector('.outward-chips');
     outwardPass.forEach(pName => {
       chipsContainer.appendChild(createPassengerChip(ride.id, pName, 'outward', isLocked));
@@ -165,7 +194,7 @@ function createRideCardElement(ride, isLocked, waitingList) {
     }
   }
 
-  if (!isDirectAlone && ride.offers_return) {
+  if (hasAssignment && !isDirectAlone && ride.offers_return) {
     const chipsContainer = card.querySelector('.return-chips');
     returnPass.forEach(pName => {
       chipsContainer.appendChild(createPassengerChip(ride.id, pName, 'return', isLocked));

@@ -9,7 +9,7 @@ const DB_SCHEMA = {
   },
   MATCHES: {
     sheetName: 'MATCHES',
-    headers: ['id', 'title', 'event_date', 'departure_time', 'meeting_place', 'is_locked', 'created_at']
+    headers: ['id', 'title', 'event_date', 'departure_time', 'meeting_place', 'is_locked', 'has_car_assignment', 'created_at']
   },
   RIDES: {
     sheetName: 'RIDES',

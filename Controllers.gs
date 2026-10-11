@@ -78,6 +78,7 @@ function ctrlCreateMatch(adminToken, payload) {
         departure_time: String(payload.departure_time),
         meeting_place: String(payload.meeting_place).trim(),
         is_locked: false,
+        has_car_assignment: payload.has_car_assignment !== false && payload.has_car_assignment !== 'false',
         created_at: new Date().toISOString()
       };
 
@@ -98,6 +99,21 @@ function ctrlToggleMatchLock(adminToken, matchId, isLocked) {
       const updated = updateRecord(DB_SCHEMA.MATCHES.sheetName, matchId, { is_locked: Boolean(isLocked) });
       if (!updated) return responseError('Match introuvable.');
       return responseSuccess({ id: matchId, is_locked: Boolean(isLocked) });
+    } catch (err) {
+      return responseError(err.message);
+    }
+  });
+}
+
+function ctrlToggleMatchAssignment(adminToken, matchId, hasCarAssignment) {
+  return withScriptLock(() => {
+    try {
+      const auth = ctrlVerifyAdminToken(adminToken);
+      if (!auth.success) return auth;
+
+      const updated = updateRecord(DB_SCHEMA.MATCHES.sheetName, matchId, { has_car_assignment: Boolean(hasCarAssignment) });
+      if (!updated) return responseError('Match introuvable.');
+      return responseSuccess({ id: matchId, has_car_assignment: Boolean(hasCarAssignment) });
     } catch (err) {
       return responseError(err.message);
     }
@@ -334,6 +350,9 @@ function ctrlJoinRide(matchId, rideId, playerName, direction) {
       const match = getTableRecords(DB_SCHEMA.MATCHES.sheetName).find(m => m.id === matchId);
       if (!match) return responseError('Match introuvable.');
       if (match.is_locked) return responseError('Les inscriptions sont verrouillées.');
+      if (match.has_car_assignment === false || match.has_car_assignment === 'false') {
+        return responseError("Ce match ne permet pas la réservation individuelle de véhicule (mode comptage simple).");
+      }
 
       const cleanName = String(playerName || '').trim();
       if (!cleanName) return responseError('Prénom requis.');

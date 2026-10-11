@@ -40,11 +40,17 @@ function renderAdminMatches(matches) {
       ? `<span class="px-2.5 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-900 border border-rose-300">Verrouillé</span>`
       : `<span class="px-2.5 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300">Ouvert</span>`;
 
+    const hasAssignment = m.has_car_assignment !== false && m.has_car_assignment !== 'false';
+    const modeBadge = hasAssignment
+      ? `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-300">Répartition A/R</span>`
+      : `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">Comptage simple</span>`;
+
     card.innerHTML = `
       <div class="flex items-start justify-between">
         <div>
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1.5 flex-wrap">
             ${lockBadge}
+            ${modeBadge}
             <span class="text-xs text-slate-500 font-bold">${formatShortDate(m.event_date)} à ${formatShortTime(m.departure_time)}</span>
           </div>
           <h3 class="font-black text-slate-900 text-sm mt-0.5">${escapeHtml(m.title)}</h3>
@@ -68,6 +74,13 @@ function renderAdminMatches(matches) {
       </div>
 
       <div class="grid grid-cols-2 gap-1.5 pt-1">
+        <button class="btn-match-toggle-mode btn-tap col-span-2 py-2 px-3 rounded-xl text-[11px] font-black flex items-center justify-between border ${hasAssignment ? 'bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100' : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100'}">
+          <span class="flex items-center gap-1.5">
+            <span>⚙️</span>
+            <span>Mode : <strong>${hasAssignment ? 'Répartition détaillée' : 'Comptage simple'}</strong></span>
+          </span>
+          <span class="underline text-[10px] opacity-80 font-bold">Changer 🔄</span>
+        </button>
         <button class="btn-match-copy-link btn-tap py-2.5 bg-indigo-50 text-indigo-800 hover:bg-indigo-100 font-black rounded-xl text-[11px] flex items-center justify-center gap-1 border border-indigo-200">
           <span>🔗</span> <span>Lien joueur</span>
         </button>
@@ -85,6 +98,19 @@ function renderAdminMatches(matches) {
         </button>
       </div>
     `;
+
+    const btnToggleMode = card.querySelector('.btn-match-toggle-mode');
+    btnToggleMode.onclick = async () => {
+      setButtonLoading(btnToggleMode, true);
+      try {
+        await callServer('ctrlToggleMatchAssignment', AppState.adminToken, m.id, !hasAssignment);
+        showToast(!hasAssignment ? 'Mode Répartition activé !' : 'Mode Comptage simple activé !', 'success');
+        loadAdminDashboard();
+      } catch (err) {
+        showToast(err.message, 'error');
+        setButtonLoading(btnToggleMode, false);
+      }
+    };
 
     card.querySelector('.btn-match-copy-link').onclick = () => {
       const playerUrl = buildAppUrl({ m: m.id });

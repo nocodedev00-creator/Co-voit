@@ -57,6 +57,8 @@ function formatWhatsAppSummary(match, rides, waitingList, publicUrl) {
   text += `📅 ${dateFormatted} | ⏰ RDV : ${timeFormatted}\n`;
   text += `📍 ${match.meeting_place}\n\n`;
 
+  const hasAssignment = match.has_car_assignment !== false && match.has_car_assignment !== 'false';
+
   // --- SECTION ALLER ---
   text += `➡️ *ALLER :*\n`;
   const outwardRides = rides.filter(r => r.offers_outward);
@@ -64,12 +66,20 @@ function formatWhatsAppSummary(match, rides, waitingList, publicUrl) {
     text += `_Aucun véhicule déclaré pour l'aller_\n`;
   } else {
     outwardRides.forEach(r => {
-      const passengers = Array.isArray(r.outward_passengers) ? r.outward_passengers : [];
-      const passCount = passengers.length;
-      const passList = passCount > 0 ? passengers.join(', ') : 'Aucun passager';
       const directBadge = r.is_direct ? ' (Direct 📍)' : '';
       const seats = r.seats_outward !== undefined ? r.seats_outward : (r.seats_total || 0);
-      text += `• *${r.driver_name}*${directBadge} (${passCount}/${seats} pl.) : ${passList}\n`;
+      if (hasAssignment) {
+        const passengers = Array.isArray(r.outward_passengers) ? r.outward_passengers : [];
+        const passCount = passengers.length;
+        const passList = passCount > 0 ? passengers.join(', ') : 'Aucun passager';
+        text += `• *${r.driver_name}*${directBadge} (${passCount}/${seats} pl.) : ${passList}\n`;
+      } else {
+        if (r.is_direct && seats === 0) {
+          text += `• *${r.driver_name}* (Direct 📍)\n`;
+        } else {
+          text += `• *${r.driver_name}*${directBadge} : ${seats} place(s)\n`;
+        }
+      }
     });
   }
 
@@ -78,7 +88,8 @@ function formatWhatsAppSummary(match, rides, waitingList, publicUrl) {
     return extra > 0 ? `${w.player_name} (+${extra})` : w.player_name;
   });
   if (outwardWaiting.length > 0) {
-    text += `⚠️ *En attente de place Aller :* ${outwardWaiting.join(', ')}\n`;
+    const label = hasAssignment ? 'En attente de place Aller' : 'Joueurs à véhiculer Aller';
+    text += `⚠️ *${label} :* ${outwardWaiting.join(', ')}\n`;
   }
 
   text += `\n`;
@@ -90,12 +101,20 @@ function formatWhatsAppSummary(match, rides, waitingList, publicUrl) {
     text += `_Aucun véhicule déclaré pour le retour_\n`;
   } else {
     returnRides.forEach(r => {
-      const passengers = Array.isArray(r.return_passengers) ? r.return_passengers : [];
-      const passCount = passengers.length;
-      const passList = passCount > 0 ? passengers.join(', ') : 'Aucun passager';
       const directBadge = r.is_direct ? ' (Direct 📍)' : '';
       const seats = r.seats_return !== undefined ? r.seats_return : (r.seats_total || 0);
-      text += `• *${r.driver_name}*${directBadge} (${passCount}/${seats} pl.) : ${passList}\n`;
+      if (hasAssignment) {
+        const passengers = Array.isArray(r.return_passengers) ? r.return_passengers : [];
+        const passCount = passengers.length;
+        const passList = passCount > 0 ? passengers.join(', ') : 'Aucun passager';
+        text += `• *${r.driver_name}*${directBadge} (${passCount}/${seats} pl.) : ${passList}\n`;
+      } else {
+        if (r.is_direct && seats === 0) {
+          text += `• *${r.driver_name}* (Direct 📍)\n`;
+        } else {
+          text += `• *${r.driver_name}*${directBadge} : ${seats} place(s)\n`;
+        }
+      }
     });
   }
 
@@ -104,7 +123,8 @@ function formatWhatsAppSummary(match, rides, waitingList, publicUrl) {
     return extra > 0 ? `${w.player_name} (+${extra})` : w.player_name;
   });
   if (returnWaiting.length > 0) {
-    text += `⚠️ *En attente de place Retour :* ${returnWaiting.join(', ')}\n`;
+    const label = hasAssignment ? 'En attente de place Retour' : 'Joueurs à véhiculer Retour';
+    text += `⚠️ *${label} :* ${returnWaiting.join(', ')}\n`;
   }
 
   text += `\n🔗 *Inscription :* ${publicUrl}`;
