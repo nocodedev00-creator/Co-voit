@@ -96,6 +96,7 @@ Ce document recense les fonctions clés du projet pour faciliter la maintenance 
 | `ctrlCreateMatch(adminToken, payload)` | Crée une nouvelle rencontre sportive. |
 | `ctrlToggleMatchLock(adminToken, matchId, isLocked)` | Verrouille/déverrouille les inscriptions. |
 | `ctrlToggleMatchAssignment(adminToken, matchId, hasCarAssignment)` | Bascule le mode du match (répartition nominative vs comptage simple). |
+| `ctrlUpdateMatch(adminToken, matchId, payload)` | Met à jour les paramètres d'un match (titre, date, heure, lieu, mode). |
 | `ctrlDeleteMatch(adminToken, matchId)` | Supprime un match, ses véhicules et ses demandes associées. |
 | `ctrlGetWhatsAppSummary(adminToken, matchId, webAppUrl, authUser)` | Génère le texte formaté prêt à coller pour WhatsApp. |
 | `ctrlGetMatchDetails(matchId)` | Retourne les données d'un match (véhicules + liste d'attente). |

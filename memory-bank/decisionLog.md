@@ -26,3 +26,4 @@ Ce document trace l'historique condensé des décisions d'architecture et résol
 - **Paramétrage match** : Ajout du champ `has_car_assignment` dans `MATCHES` (activé par défaut).
 - **Mode comptage simple** : Masquage des boutons "Monter" et assignations individuelles si désactivé ; bilan des capacités et liste des demandeurs au RDV préservés.
 - **Sécurisation API** : Contrôle dans `ctrlJoinRide` et formatage adapté dans `formatWhatsAppSummary`.
+- **Édition admin en direct** : Endpoint `ctrlUpdateMatch` et modale dédiée pour modifier titre, date, heure, lieu et mode sans supprimer le match.

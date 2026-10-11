@@ -126,6 +126,38 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  // --- GESTION ADMIN : MODIFIER UN MATCH ---
+  const formEditMatch = document.getElementById('form-edit-match');
+  if (formEditMatch) {
+    formEditMatch.onsubmit = async (e) => {
+      e.preventDefault();
+      const btnSubmit = document.getElementById('btn-submit-edit-match');
+      if (btnSubmit && btnSubmit.disabled) return;
+      setButtonLoading(btnSubmit, true, 'Enregistrement...');
+
+      const matchId = document.getElementById('input-edit-match-id').value;
+      const chk = document.getElementById('check-edit-has-car-assignment');
+      const payload = {
+        title: document.getElementById('input-edit-match-title').value,
+        event_date: document.getElementById('input-edit-match-date').value,
+        departure_time: document.getElementById('input-edit-match-time').value,
+        meeting_place: document.getElementById('input-edit-match-place').value,
+        has_car_assignment: chk ? chk.checked : true
+      };
+
+      try {
+        await callServer('ctrlUpdateMatch', AppState.adminToken, matchId, payload);
+        showToast('Rencontre mise à jour avec succès !', 'success');
+        closeModal('modal-edit-match');
+        loadAdminDashboard();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        setButtonLoading(btnSubmit, false);
+      }
+    };
+  }
+
   // --- JOUEUR : PROPOSER UNE VOITURE ---
   const btnOpenAddCar = document.getElementById('btn-open-add-car');
   if (btnOpenAddCar) {

@@ -1,17 +1,16 @@
 # Contexte Actif
 
 ## Travail Réalisé & Validé
-1. **Option Admin : Répartition Nominative vs Comptage Simple** :
-   - Ajout d'une option lors de la création d'un match (`has_car_assignment`, cochée par défaut).
-   - Mode activé (défaut) : fonctionnement classique avec réservation de place par véhicule (`+ Monter à l'Aller / Retour`) et détail des passagers.
-   - Mode désactivé (comptage simple) : les boutons d'inscription dans un véhicule sont masqués sur les cartes de voitures. L'interface affiche uniquement les véhicules avec leurs capacités et la liste des personnes à véhiculer, tout en calculant le solde et les bilans A/R.
-   - Sécurisation côté serveur dans `ctrlJoinRide` (rejet de réservation si le match est en comptage simple).
-   - Adaptation automatique de la synthèse WhatsApp pour ce mode.
-   - Badge visuel sur le tableau de bord Admin (`Répartition A/R` ou `Comptage simple`).
+1. **Édition des Matchs en Direct (Mode Admin)** :
+   - Ajout d'un bouton `✏️ Modifier` sur chaque carte de match du tableau de bord Admin.
+   - Nouvelle modale `modal-edit-match` pré-remplie avec le titre, la date, l'heure de RDV, le lieu et l'option de répartition.
+   - Nouveau endpoint `ctrlUpdateMatch(adminToken, matchId, payload)` dans `Controllers.gs` et `Code.gs`.
 
-2. **Déploiement Clasp Validé en Production** :
-   - Fichiers Google Apps Script synchronisés via `clasp push`.
-   - Version @37 redéployée avec succès sur le déploiement de production.
+2. **Option Admin : Répartition Nominative vs Comptage Simple** :
+   - Option à la création (`modal-create-match`) et à l'édition (`modal-edit-match`).
+   - Bouton de bascule rapide instantané (`⚙️ Mode : ... [Changer 🔄]`) directement sur chaque carte de match.
+   - Mode comptage simple : cartes de voitures allégées sans réservation nominative, solde et liste des joueurs à véhiculer préservés.
 
-3. **Architecture & Refactoring Watchdog** :
-   - Tous les modules JS restent strictement sous la limite de 300 lignes (max: 249 lignes).
+3. **Déploiement Clasp Validé en Production** :
+   - Synchronisation et déploiement de production version @39.
+   - Tous les modules JS restent strictement sous la limite de 300 lignes (max: 270 lignes dans `app.js`).

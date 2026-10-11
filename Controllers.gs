@@ -120,6 +120,33 @@ function ctrlToggleMatchAssignment(adminToken, matchId, hasCarAssignment) {
   });
 }
 
+function ctrlUpdateMatch(adminToken, matchId, payload) {
+  return withScriptLock(() => {
+    try {
+      const auth = ctrlVerifyAdminToken(adminToken);
+      if (!auth.success) return auth;
+
+      if (!payload || !payload.title || !payload.event_date || !payload.departure_time || !payload.meeting_place) {
+        return responseError('Tous les champs obligatoires doivent être renseignés.');
+      }
+
+      const updates = {
+        title: String(payload.title).trim(),
+        event_date: String(payload.event_date),
+        departure_time: String(payload.departure_time),
+        meeting_place: String(payload.meeting_place).trim(),
+        has_car_assignment: payload.has_car_assignment !== false && payload.has_car_assignment !== 'false'
+      };
+
+      const updated = updateRecord(DB_SCHEMA.MATCHES.sheetName, matchId, updates);
+      if (!updated) return responseError('Match introuvable.');
+      return responseSuccess({ id: matchId, ...updates });
+    } catch (err) {
+      return responseError(err.message);
+    }
+  });
+}
+
 function ctrlDeleteMatch(adminToken, matchId) {
   return withScriptLock(() => {
     try {
