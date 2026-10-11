@@ -74,13 +74,6 @@ function renderAdminMatches(matches) {
       </div>
 
       <div class="grid grid-cols-2 gap-1.5 pt-1">
-        <button class="btn-match-toggle-mode btn-tap col-span-2 py-2 px-3 rounded-xl text-[11px] font-black flex items-center justify-between border ${hasAssignment ? 'bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100' : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100'}">
-          <span class="flex items-center gap-1.5">
-            <span>⚙️</span>
-            <span>Mode : <strong>${hasAssignment ? 'Répartition détaillée' : 'Comptage simple'}</strong></span>
-          </span>
-          <span class="underline text-[10px] opacity-80 font-bold">Changer 🔄</span>
-        </button>
         <button class="btn-match-edit btn-tap py-2.5 bg-amber-50 text-amber-900 hover:bg-amber-100 font-black rounded-xl text-[11px] flex items-center justify-center gap-1 border border-amber-300">
           <span>✏️</span> <span>Modifier</span>
         </button>
@@ -93,27 +86,14 @@ function renderAdminMatches(matches) {
         <button class="btn-match-share btn-tap py-2.5 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-black rounded-xl text-[11px] flex items-center justify-center gap-1 border border-emerald-300">
           <span>💬</span> <span>WhatsApp</span>
         </button>
-        <button class="btn-match-lock btn-tap col-span-2 py-2.5 bg-slate-100 text-slate-800 hover:bg-slate-200 font-black rounded-xl text-[11px] flex items-center justify-center gap-1 border border-slate-300">
-          <span>${m.is_locked ? '🔓' : '🔒'}</span> <span>${m.is_locked ? 'Déverrouiller les inscriptions' : 'Verrouiller les inscriptions'}</span>
+        <button class="btn-match-lock btn-tap py-2.5 bg-slate-100 text-slate-800 hover:bg-slate-200 font-black rounded-xl text-[11px] flex items-center justify-center gap-1 border border-slate-300">
+          <span>${m.is_locked ? '🔓' : '🔒'}</span> <span>${m.is_locked ? 'Déverrouiller' : 'Verrouiller'}</span>
         </button>
-        <button class="btn-match-delete btn-tap col-span-2 py-2 bg-rose-50 text-rose-800 hover:bg-rose-100 font-bold rounded-xl text-[10px] flex items-center justify-center gap-1 border border-rose-300">
-          <span>🗑️</span> <span>Supprimer le match</span>
+        <button class="btn-match-delete btn-tap py-2.5 bg-rose-50 text-rose-800 hover:bg-rose-100 font-black rounded-xl text-[11px] flex items-center justify-center gap-1 border border-rose-300">
+          <span>🗑️</span> <span>Supprimer</span>
         </button>
       </div>
     `;
-
-    const btnToggleMode = card.querySelector('.btn-match-toggle-mode');
-    btnToggleMode.onclick = async () => {
-      setButtonLoading(btnToggleMode, true);
-      try {
-        await callServer('ctrlToggleMatchAssignment', AppState.adminToken, m.id, !hasAssignment);
-        showToast(!hasAssignment ? 'Mode Répartition activé !' : 'Mode Comptage simple activé !', 'success');
-        loadAdminDashboard();
-      } catch (err) {
-        showToast(err.message, 'error');
-        setButtonLoading(btnToggleMode, false);
-      }
-    };
 
     const btnEdit = card.querySelector('.btn-match-edit');
     if (btnEdit) {

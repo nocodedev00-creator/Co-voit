@@ -8,7 +8,8 @@
 
 2. **Option Admin : Répartition Nominative vs Comptage Simple** :
    - Option à la création (`modal-create-match`) et à l'édition (`modal-edit-match`).
-   - Bouton de bascule rapide instantané (`⚙️ Mode : ... [Changer 🔄]`) directement sur chaque carte de match.
+   - Interface allégée : suppression du bouton de bascule rapide encombrant sur la carte (modification centralisée dans `Modifier`).
+   - Disposition en grille 2 colonnes équilibrée : `Modifier` + `Voir`, `Lien joueur` + `WhatsApp`, `Verrouiller` + `Supprimer`.
    - Mode comptage simple : cartes de voitures allégées sans réservation nominative, solde et liste des joueurs à véhiculer préservés.
 
 3. **Déploiement Clasp Validé en Production** :
